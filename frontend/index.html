@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTU Sepolia Faucet</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <style>
+        .neumorphic {
+            box-shadow: 12px 12px 24px #d1d9e6, -12px -12px 24px #f9f9f9;
+        }
+
+        .neumorphic-inset {
+            box-shadow: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #f9f9f9;
+        }
+
+        .dark .neumorphic {
+            box-shadow: 12px 12px 24px #1a1a1a, -12px -12px 24px #2c2c2c;
+        }
+
+        .dark .neumorphic-inset {
+            box-shadow: inset 6px 6px 12px #1a1a1a, inset -6px -6px 12px #2c2c2c;
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translatey(0px);
+            }
+
+            50% {
+                transform: translatey(-20px);
+            }
+
+            100% {
+                transform: translatey(0px);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-800 transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-end mb-4">
+            <button id="darkModeToggle" class="neumorphic p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
+        <div class="neumorphic rounded-lg p-8 mb-8">
+            <h1 class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200">NTU Sepolia Faucet</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
+                    <img src="https://picsum.photos/200/200?random=1" alt="Ethereum Logo"
+                        class="w-32 h-32 mb-4 rounded-full animate-float">
+                    <button id="getBalance"
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Get
+                        Faucet Balance</button>
+                </div>
+                <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
+                    <img src="https://picsum.photos/200/200?random=2" alt="Drip Icon"
+                        class="w-32 h-32 mb-4 rounded-full animate-float">
+                    <button id="drip"
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Drip</button>
+                </div>
+            </div>
+        </div>
+        <div class="neumorphic rounded-lg p-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Donate to Faucet</h2>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <input type="number" id="amount" placeholder="Amount to donate (in ether)"
+                    class="neumorphic-inset rounded-full px-4 py-2 w-full md:w-2/3 focus:outline-none text-gray-800 dark:text-gray-200">
+                <button id="donate"
+                    class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Donate</button>
+            </div>
+        </div>
+        <p id="result" class="mt-8 text-xl font-semibold text-center text-gray-800 dark:text-gray-200"></p>
+    </div>
+
+    <script>
+        const contractAddress = '0x040012eF0Eb5B9C1B4F2F21958A9d141e83d0428';
+        const contractABI = [
+            {
+                "inputs": [],
+                "name": "donate",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "drip",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_newAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "setDripAmount",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "stateMutability": "payable",
+                "type": "receive"
+            },
+            {
+                "inputs": [],
+                "name": "dripAmount",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getFaucetBalance",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getRemainingWaitTime",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "interval",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "lastDripTime",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "lastLoginTime",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "ownerInterval",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "recordLogin",
+                "outputs": [],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        // Initialize Web3
+        if (typeof window.ethereum !== 'undefined') {
+            const web3 = new Web3(window.ethereum);
+            ethereum.request({ method: 'eth_requestAccounts' });
+
+            const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            document.getElementById('getBalance').onclick = async () => {
+                try {
+                    const balance = await contract.methods.getFaucetBalance().call();
+                    document.getElementById('result').innerText = `Faucet Balance: ${web3.utils.fromWei(balance, 'ether')} ETH`;
+                    animateResult();
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            document.getElementById('drip').onclick = async () => {
+                try {
+                    const accounts = await web3.eth.getAccounts();
+                    await contract.methods.drip().send({ from: accounts[0] });
+                    document.getElementById('result').innerText = 'Drip successful!';
+                    animateResult();
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            document.getElementById('donate').onclick = async () => {
+                try {
+                    const accounts = await web3.eth.getAccounts();
+                    const amount = document.getElementById('amount').value;
+                    await contract.methods.donate().send({ from: accounts[0], value: web3.utils.toWei(amount, 'ether') });
+                    document.getElementById('result').innerText = 'Donation successful!';
+                    animateResult();
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+        } else {
+            console.log('Please install MetaMask!');
+        }
+
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+        });
+
+        // Animation for result text
+        function animateResult() {
+            gsap.from("#result", {
+                y: 20,
+                opacity: 0,
+                duration: 0.5,
+                ease: "power2.out"
+            });
+        }
+
+        // Background animation
+        gsap.to("body", {
+            backgroundPosition: "100% 100%",
+            duration: 20,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+    </script>
+</body>
+
+</html>
