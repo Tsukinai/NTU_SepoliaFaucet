@@ -42,6 +42,12 @@
                 transform: translatey(0px);
             }
         }
+
+        .progress-ring__circle {
+            transition: 0.35s stroke-dashoffset;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
     </style>
 </head>
 
@@ -58,7 +64,7 @@
         </div>
         <div class="neumorphic rounded-lg p-8 mb-8">
             <h1 class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200">NTU Sepolia Faucet</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
                     <img src="https://picsum.photos/200/200?random=1" alt="Ethereum Logo"
                         class="w-32 h-32 mb-4 rounded-full animate-float">
@@ -70,7 +76,24 @@
                     <img src="https://picsum.photos/200/200?random=2" alt="Drip Icon"
                         class="w-32 h-32 mb-4 rounded-full animate-float">
                     <button id="drip"
-                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Drip</button>
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Drip
+                        0.1eth</button>
+                </div>
+                <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
+                    <div class="relative w-32 h-32 mb-4">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <circle class="text-gray-200 stroke-current" stroke-width="10" cx="50" cy="50" r="40"
+                                fill="none" />
+                            <circle class="progress-ring__circle text-blue-500 stroke-current" stroke-width="10" cx="50"
+                                cy="50" r="40" fill="none" />
+                        </svg>
+                        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                            <span id="waitTimeText" class="text-2xl font-bold text-gray-800 dark:text-gray-200"></span>
+                        </div>
+                    </div>
+                    <button id="checkWaitTime"
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Check
+                        Wait Time</button>
                 </div>
             </div>
         </div>
@@ -87,7 +110,7 @@
     </div>
 
     <script>
-        const contractAddress = '0x040012eF0Eb5B9C1B4F2F21958A9d141e83d0428';
+        const contractAddress = '0xfc2B656ddF4543AA3A8F91D6C7322Ff3CC8A8B6D';
         const contractABI = [
             {
                 "inputs": [],
@@ -210,25 +233,6 @@
                 "type": "function"
             },
             {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "name": "lastLoginTime",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
                 "inputs": [],
                 "name": "owner",
                 "outputs": [
@@ -251,13 +255,6 @@
                         "type": "uint256"
                     }
                 ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "recordLogin",
-                "outputs": [],
                 "stateMutability": "view",
                 "type": "function"
             }
@@ -302,34 +299,57 @@
                     console.error(error);
                 }
             };
-        } else {
-            console.log('Please install MetaMask!');
-        }
 
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        darkModeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-        });
+            document.getElementById('checkWaitTime').onclick = async () => {
+                try {
+                    const waitTime = await contract.methods.getRemainingWaitTime().call();
+                    // Ensure waitTime is treated as a number for calculation
+                    const waitTimeInMinutes = Math.ceil(Number(waitTime) / 60);
+                    document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
+                    setProgress(waitTimeInMinutes, 60);
+                    document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInMinutes} minutes`;
+                    animateResult();
+                } catch (error) {
+                    console.error(error);
+                }
+            };
 
-        // Animation for result text
-        function animateResult() {
-            gsap.from("#result", {
-                y: 20,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power2.out"
+
+            // Dark mode toggle
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
             });
-        }
 
-        // Background animation
-        gsap.to("body", {
-            backgroundPosition: "100% 100%",
-            duration: 20,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut"
-        });
+            // Animation for result text
+            function animateResult() {
+                gsap.from("#result", {
+                    y: 20,
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: "power2.out"
+                });
+            }
+
+            // Background animation
+            gsap.to("body", {
+                backgroundPosition: "100% 100%",
+                duration: 20,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+
+            // Progress ring animation
+            function setProgress(current, max) {
+                const circle = document.querySelector('.progress-ring__circle');
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                const offset = circumference - (current / max) * circumference;
+                circle.style.strokeDashoffset = offset;
+            }
+        }
     </script>
 </body>
 
