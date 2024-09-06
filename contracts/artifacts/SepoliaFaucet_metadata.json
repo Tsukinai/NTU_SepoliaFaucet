@@ -96,25 +96,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "lastLoginTime",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "owner",
 				"outputs": [
@@ -137,13 +118,6 @@
 						"type": "uint256"
 					}
 				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "recordLogin",
-				"outputs": [],
 				"stateMutability": "view",
 				"type": "function"
 			},
@@ -206,11 +180,11 @@
 	},
 	"sources": {
 		"contracts/faucet.sol": {
-			"keccak256": "0x8673a178d3d8a8260f4b1ccd329de3ce32e32100c7c27c67a0cfbda818c38919",
+			"keccak256": "0x87039752e58f0e4af553a76811a5e203a0007d73d9cb1deb032895e1ba494622",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://194e13604f766d6a58e309f24ad7800ad3dea0c30f3598267a4e0bf8a3190c0a",
-				"dweb:/ipfs/QmZfCbc5sFFkP7cJVJF9qAVWbLHSjDqDrjW6r8o88cNasf"
+				"bzz-raw://e74fc5037439060d512f9ec278a5da0fb5385723c8b3eacd12b59c82c6527610",
+				"dweb:/ipfs/QmWWzUJN5CfwHo1iQCR2yjoBRTMQsKDMF1U2LMyfGL1pCR"
 			]
 		}
 	},
