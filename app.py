@@ -1,10 +1,11 @@
 import os
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, make_response
 from flask_mail import Mail, Message
 from web3 import Web3
 import random
 import string
 import re
+import time
 
 # 合理的邮箱后缀列表
 valid_domains = [
@@ -276,13 +277,37 @@ def send_verification_code():
     email = request.json.get('email')
     if not pattern.match(email):
         return jsonify({'message': 'Invalid email domain'}), 400
-
+    
+    # 检查上次发送验证码的时间
+    last_sent_time = request.cookies.get('last_sent_time')
+    current_time = time.time()
+    if last_sent_time:
+        remaining_time = 60 - (current_time - float(last_sent_time))
+        if remaining_time > 0:
+            return jsonify({'message': 'Please wait 60 seconds before requesting another code', 'remaining_time': remaining_time}), 429
+    
     verification_code = generate_verification_code()
     session['verification_code'] = verification_code
 
     msg = Message('Your Verification Code', sender='ntu.faucet@yahoo.com', recipients=[email])
     msg.body = f'Your verification code is {verification_code}'
+    msg.html = f'''
+        <html>
+            <body>
+                <h1>Verification Code</h1>
+                <p>Dear NTUer,</p>
+                <p>Your verification code is:</p>
+                <h2 style="color: #2e6c80;">{verification_code}</h2>
+                <p>Please use this code to complete your verification process.</p>
+                <p>Thank you!</p>
+            </body>
+        </html>
+    '''
     mail.send(msg)
+
+    # 设置 Cookie
+    response = make_response(jsonify({'message': 'Verification code sent'}))
+    response.set_cookie('last_sent_time', str(current_time), max_age=60)
 
     return jsonify({'message': 'Verification code sent'})
 
