@@ -127,26 +127,26 @@ if (typeof window.ethereum !== 'undefined') {
      * @returns {Promise<void>} A promise that resolves when the verification code is sent successfully.
      */
     document.getElementById('sendVerificationCode').onclick = async () =>{
-        const email = document.getElementById('email').value;
+        const useremail = document.getElementById('email').value;
         const response = await fetch('/send_verification_code', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email:email })
+            body: JSON.stringify({ email: useremail })
         });
         const result = await response.json();
         alert(result.message);
     }
 
     document.getElementById('verifyCode').onclick = async () =>{
-        const code = document.getElementById('verification_code').value;
+        const verifyCode = document.getElementById('verification_code').value;
         const response = await fetch('/verify_code', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ code:code })
+            body: JSON.stringify({ code: verifyCode })
         });
         const result = await response.json();
         alert(result.message);
