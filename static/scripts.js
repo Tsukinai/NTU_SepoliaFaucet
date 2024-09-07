@@ -1,4 +1,3 @@
-
 let web3;
 let userAddress;
 // Initialize Web3
@@ -36,19 +35,6 @@ if (typeof window.ethereum !== 'undefined') {
             document.getElementById('result').innerText = 'Drip successful!';
             animateResult();
         } catch (error) {
-            console.error(error);
-        }
-    };
-
-    document.getElementById('inquire').onclick = async () => {
-        try {
-            const accounts = await web3.eth.getAccounts();
-            
-            const res = await contract.methods.getBalance(accounts[0]).call();
-            
-            document.getElementById('result').innerText = `User Balance: ${web3.utils.fromWei(res, 'ether')} ETH`;
-            animateResult();
-        }catch (error) {
             console.error(error);
         }
     };
@@ -120,23 +106,38 @@ if (typeof window.ethereum !== 'undefined') {
         const offset = circumference - (current / max) * circumference;
         circle.style.strokeDashoffset = offset;
     }
+
     /**
      * Sends a verification code to the specified email address.
      * @async
      * @function sendVerificationCode
      * @returns {Promise<void>} A promise that resolves when the verification code is sent successfully.
      */
-    document.getElementById('sendVerificationCode').onclick = async () =>{
-        const useremail = document.getElementById('email').value;
-        const response = await fetch('/send_verification_code', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: useremail })
-        });
-        const result = await response.json();
-        alert(result.message);
+    document.getElementById('sendVerificationCode').onclick = async () => {
+        const email = document.getElementById('email').value;
+        try {
+            const response = await fetch('/send_verification_code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            });
+    
+            // 检查响应的 Content-Type
+            const contentType = response.headers.get('Content-Type');
+            if (contentType && contentType.includes('application/json')) {
+                const result = await response.json();
+                alert(result.message);
+            } else {
+                const text = await response.text();
+                console.error('Unexpected response:', text);
+                alert('Unexpected response from server. Check console for details.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Check console for details.');
+        }
     }
 
     document.getElementById('verifyCode').onclick = async () =>{
