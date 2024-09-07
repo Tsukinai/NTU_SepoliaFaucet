@@ -6,8 +6,9 @@ contract SepoliaFaucet {
     uint256 public interval = 24 hours; 
     uint256 public ownerInterval = 1 minutes; // Owner的drip时间间隔为1分钟
 
-    mapping(address => uint256) public lastDripTime; // 记录每个地址上次drip的时间
-    mapping(address => bool) public isVerified; // 记录每个地址是否已验证
+    //mapping(address => uint256) public lastDripTime; // 记录每个地址上次drip的时间
+    mapping(bytes32 => uint256) public lastDripTime; // 记录每个邮箱上次drip的时间
+    mapping(bytes32 => bool) public isVerified; // 记录每个邮箱是否已验证(为了节省gas，使用邮箱的hash)
 
     address public owner;
 
@@ -16,24 +17,24 @@ contract SepoliaFaucet {
     }
 
     // 允许合约所有者验证用户
-    function verifyUser(address _user) external {
+    function verifyUser(bytes32 _userEmail) external {
         require(msg.sender == owner, "Only the owner can verify users");
-        isVerified[_user] = true;
+        isVerified[_userEmail] = true;
     }
 
     // 水龙头drip功能
-    function drip() external {
-        require(isVerified[msg.sender], "You must be verified to use the faucet");
+    function drip(address _userAddress ,bytes32 _userEmail) external {
+        require(isVerified[_userEmail], "You must be verified to use the faucet");
         uint256 applicableInterval = msg.sender == owner ? ownerInterval : interval;
         
-        require(block.timestamp >= lastDripTime[msg.sender] + applicableInterval, "You must wait for the required interval before dripping again");
+        require(block.timestamp >= lastDripTime[_userEmail] + applicableInterval, "You must wait for the required interval before dripping again");
         require(address(this).balance >= dripAmount, "Insufficient faucet balance");
 
         // 更新drip时间
-        lastDripTime[msg.sender] = block.timestamp;
+        lastDripTime[_userEmail] = block.timestamp;
 
         // 支付 gas 费用并转账给相应账户
-        (bool success, ) = payable(msg.sender).call{value: dripAmount, gas: gasleft()}("");
+        (bool success, ) = payable(_userAddress).call{value: dripAmount, gas: gasleft()}("");
         require(success, "Transfer failed");
     }
 
@@ -62,9 +63,9 @@ contract SepoliaFaucet {
     }
 
     // 查询剩余等待时间（drip时间）
-    function getRemainingWaitTime() external view returns (uint256) {
+    function getRemainingWaitTime(bytes32 _userEmail) external view returns (uint256) {
         uint256 applicableInterval = msg.sender == owner ? ownerInterval : interval;
-        uint256 lastDrip = lastDripTime[msg.sender];
+        uint256 lastDrip = lastDripTime[_userEmail];
         
         if (block.timestamp >= lastDrip + applicableInterval) {
             return 0; // 可以立即drip
