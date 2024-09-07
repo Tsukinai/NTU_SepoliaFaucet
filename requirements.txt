@@ -1,2 +1,4 @@
 flask
 gunicorn
+Flask-Mail
+web3
