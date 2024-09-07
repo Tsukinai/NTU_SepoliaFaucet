@@ -1,3 +1,4 @@
+
 let web3;
 let userAddress;
 // Initialize Web3
@@ -35,6 +36,19 @@ if (typeof window.ethereum !== 'undefined') {
             document.getElementById('result').innerText = 'Drip successful!';
             animateResult();
         } catch (error) {
+            console.error(error);
+        }
+    };
+
+    document.getElementById('inquire').onclick = async () => {
+        try {
+            const accounts = await web3.eth.getAccounts();
+            
+            const res = await contract.methods.getBalance(accounts[0]).call();
+            
+            document.getElementById('result').innerText = `User Balance: ${web3.utils.fromWei(res, 'ether')} ETH`;
+            animateResult();
+        }catch (error) {
             console.error(error);
         }
     };
@@ -106,7 +120,6 @@ if (typeof window.ethereum !== 'undefined') {
         const offset = circumference - (current / max) * circumference;
         circle.style.strokeDashoffset = offset;
     }
-
     /**
      * Sends a verification code to the specified email address.
      * @async
