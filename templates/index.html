@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTU Sepolia Faucet</title>
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 dark:bg-gray-800 transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-end mb-4">
+            <button id="darkModeToggle" class="neumorphic p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
+        <div class="neumorphic rounded-lg p-8 mb-8">
+            <h1 class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200">NTU Sepolia Faucet</h1>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
+                    <img src="https://picsum.photos/200/200?random=1" alt="Ethereum Logo"
+                        class="w-32 h-32 mb-4 rounded-full animate-float">
+                    <button id="getBalance"
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Get
+                        Faucet Balance</button>
+                </div>
+                <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
+                    <img src="https://picsum.photos/200/200?random=2" alt="Drip Icon"
+                        class="w-32 h-32 mb-4 rounded-full animate-float">
+                    <button id="drip"
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Drip
+                        0.1eth</button>
+                </div>
+                <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
+                    <div class="relative w-32 h-32 mb-4">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <circle class="text-gray-200 stroke-current" stroke-width="10" cx="50" cy="50" r="40"
+                                fill="none" />
+                            <circle class="progress-ring__circle text-blue-500 stroke-current" stroke-width="10" cx="50"
+                                cy="50" r="40" fill="none" />
+                        </svg>
+                        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                            <span id="waitTimeText" class="text-2xl font-bold text-gray-800 dark:text-gray-200"></span>
+                        </div>
+                    </div>
+                    <button id="checkWaitTime"
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Check
+                        Wait Time</button>
+                </div>
+            </div>
+        </div>
+        <div class="neumorphic rounded-lg p-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Donate to Faucet</h2>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <input type="number" id="amount" placeholder="Amount to donate (in ether)"
+                    class="neumorphic-inset rounded-full px-4 py-2 w-full md:w-2/3 focus:outline-none text-gray-800 dark:text-gray-200">
+                <button id="donate"
+                    class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Donate</button>
+            </div>
+        </div>
+        <p id="result" class="mt-8 text-xl font-semibold text-center text-gray-800 dark:text-gray-200"></p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,39 @@
+.neumorphic {
+    box-shadow: 12px 12px 24px #d1d9e6, -12px -12px 24px #f9f9f9;
+}
+
+.neumorphic-inset {
+    box-shadow: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #f9f9f9;
+}
+
+.dark .neumorphic {
+    box-shadow: 12px 12px 24px #1a1a1a, -12px -12px 24px #2c2c2c;
+}
+
+.dark .neumorphic-inset {
+    box-shadow: inset 6px 6px 12px #1a1a1a, inset -6px -6px 12px #2c2c2c;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translatey(0px);
+    }
+
+    50% {
+        transform: translatey(-20px);
+    }
+
+    100% {
+        transform: translatey(0px);
+    }
+}
+
+.progress-ring__circle {
+    transition: 0.35s stroke-dashoffset;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
