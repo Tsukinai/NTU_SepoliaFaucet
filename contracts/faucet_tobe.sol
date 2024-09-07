@@ -23,7 +23,7 @@ contract SepoliaFaucet {
     }
 
     // 水龙头drip功能
-    function drip(address _userAddress ,bytes32 _userEmail) external {
+    function drip(address _userAddress, bytes32 _userEmail) external {
         require(isVerified[_userEmail], "You must be verified to use the faucet");
         uint256 applicableInterval = msg.sender == owner ? ownerInterval : interval;
         
