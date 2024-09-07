@@ -309,7 +309,7 @@ def send_verification_code():
     response = make_response(jsonify({'message': 'Verification code sent'}))
     response.set_cookie('last_sent_time', str(current_time), max_age=60)
 
-    return jsonify({'message': 'Verification code sent'})
+    return response
 
 @app.route('/verify_code', methods=["POST"])
 def verify_code():
