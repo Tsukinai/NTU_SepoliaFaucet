@@ -16,24 +16,24 @@ contract SepoliaFaucet {
     }
 
     // 允许合约所有者验证用户
-    function verifyUser(address _userAddress) external {
+    function verifyUser(address _user) external {
         require(msg.sender == owner, "Only the owner can verify users");
-        isVerified[_userAddress] = true;
+        isVerified[_user] = true;
     }
 
     // 水龙头drip功能
-    function drip(address _userAddress) external {
-        require(isVerified[_userAddress], "You must be verified to use the faucet");
+    function drip() external {
+        require(isVerified[msg.sender], "You must be verified to use the faucet");
         uint256 applicableInterval = msg.sender == owner ? ownerInterval : interval;
         
-        require(block.timestamp >= lastDripTime[_userAddress] + applicableInterval, "You must wait for the required interval before dripping again");
+        require(block.timestamp >= lastDripTime[msg.sender] + applicableInterval, "You must wait for the required interval before dripping again");
         require(address(this).balance >= dripAmount, "Insufficient faucet balance");
 
         // 更新drip时间
-        lastDripTime[_userAddress] = block.timestamp;
+        lastDripTime[msg.sender] = block.timestamp;
 
         // 支付 gas 费用并转账给相应账户
-        (bool success, ) = payable(_userAddress).call{value: dripAmount, gas: gasleft()}("");
+        (bool success, ) = payable(msg.sender).call{value: dripAmount, gas: gasleft()}("");
         require(success, "Transfer failed");
     }
 

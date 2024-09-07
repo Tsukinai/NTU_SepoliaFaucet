@@ -1,201 +1,18 @@
-const contractAddress = '0xA97Af4408Ed4518A0Fa2FAB64e70E6F8D1571e8C';
-const contractABI = [
-	{
-		"inputs": [],
-		"name": "donate",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_userAddress",
-				"type": "address"
-			}
-		],
-		"name": "drip",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_newAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "setDripAmount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_userAddress",
-				"type": "address"
-			}
-		],
-		"name": "verifyUser",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
-	},
-	{
-		"inputs": [],
-		"name": "dripAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getFaucetBalance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getRemainingWaitTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interval",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "isVerified",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "lastDripTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "ownerInterval",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
+
+let web3;
+let userAddress;
 // Initialize Web3
 if (typeof window.ethereum !== 'undefined') {
     const web3 = new Web3(window.ethereum);
     ethereum.request({ method: 'eth_requestAccounts' });
-
-    const contract = new web3.eth.Contract(contractABI, contractAddress);
-
     document.getElementById('getBalance').onclick = async () => {
         try {
-            const balance = await contract.methods.getFaucetBalance().call();
-            document.getElementById('result').innerText = `Faucet Balance: ${web3.utils.fromWei(balance, 'ether')} ETH`;
+            const response = await fetch('/get_balance');
+            const result = await response.json();
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            document.getElementById('result').innerText = `Faucet Balance: ${result.balance} ETH`;
             animateResult();
         } catch (error) {
             console.error(error);
@@ -204,16 +21,18 @@ if (typeof window.ethereum !== 'undefined') {
 
     document.getElementById('drip').onclick = async () => {
         try {
-            const recip = recipAddress.value;
-            if (!web3.utils.isAddress(recip)){
-                document.getElementById('result').innerText = 'Invalid Address!';
-                return;
+            const userAddress = await getUserAddress();
+            const response = await fetch('/drip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_address: userAddress })
+            });
+            const result = await response.json();
+            if (result.error) {
+                throw new Error(result.error);
             }
-
-            const accounts = await web3.eth.getAccounts();
-          
-            await contract.methods.drip(recip).send({from: accounts[0]});
-     
             document.getElementById('result').innerText = 'Drip successful!';
             animateResult();
         } catch (error) {
@@ -248,9 +67,12 @@ if (typeof window.ethereum !== 'undefined') {
 
     document.getElementById('checkWaitTime').onclick = async () => {
         try {
-            const waitTime = await contract.methods.getRemainingWaitTime().call();
-            // Ensure waitTime is treated as a number for calculation
-            const waitTimeInMinutes = Math.ceil(Number(waitTime) / 60);
+            const response = await fetch('/check_wait_time');
+            const result = await response.json();
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            const waitTimeInMinutes = result.wait_time;
             document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
             setProgress(waitTimeInMinutes, 60);
             document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInMinutes} minutes`;
@@ -260,14 +82,17 @@ if (typeof window.ethereum !== 'undefined') {
         }
     };
 
+    // 获取用户地址
+    async function getUserAddress() {
+        if (typeof window.ethereum !== 'undefined') {
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            return accounts[0];
+        } else {
+            throw new Error('Ethereum wallet is not connected');
+        }
+    }
 
-    // Dark mode toggle
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    darkModeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-    });
-
-    // Animation for result text
+    // 动画效果
     function animateResult() {
         gsap.from("#result", {
             y: 20,
@@ -277,7 +102,7 @@ if (typeof window.ethereum !== 'undefined') {
         });
     }
 
-    // Background animation
+    // 背景动画
     gsap.to("body", {
         backgroundPosition: "100% 100%",
         duration: 20,
@@ -286,7 +111,7 @@ if (typeof window.ethereum !== 'undefined') {
         ease: "sine.inOut"
     });
 
-    // Progress ring animation
+    // 进度环动画
     function setProgress(current, max) {
         const circle = document.querySelector('.progress-ring__circle');
         const radius = circle.r.baseVal.value;
@@ -294,5 +119,36 @@ if (typeof window.ethereum !== 'undefined') {
         circle.style.strokeDasharray = `${circumference} ${circumference}`;
         const offset = circumference - (current / max) * circumference;
         circle.style.strokeDashoffset = offset;
+    }
+    /**
+     * Sends a verification code to the specified email address.
+     * @async
+     * @function sendVerificationCode
+     * @returns {Promise<void>} A promise that resolves when the verification code is sent successfully.
+     */
+    document.getElementById('sendVerificationCode').onclick = async () =>{
+        const email = document.getElementById('email').value;
+        const response = await fetch('/send_verification_code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+        const result = await response.json();
+        alert(result.message);
+    }
+
+    document.getElementById('verifyCode').onclick = async () =>{
+        const code = document.getElementById('verification_code').value;
+        const response = await fetch('/verify_code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ code })
+        });
+        const result = await response.json();
+        alert(result.message);
     }
 }
