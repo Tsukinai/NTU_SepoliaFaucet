@@ -16,9 +16,9 @@ contract SepoliaFaucet {
     }
 
     // 允许合约所有者验证用户
-    function verifyUser(address _user) external {
+    function verifyUser(address _userAddress) external {
         require(msg.sender == owner, "Only the owner can verify users");
-        isVerified[_user] = true;
+        isVerified[_userAddress] = true;
     }
 
     // 水龙头drip功能
