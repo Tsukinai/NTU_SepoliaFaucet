@@ -8,12 +8,10 @@ contract SepoliaFaucet {
 
     mapping(address => uint256) public lastDripTime; // 记录每个地址上次drip的时间
     mapping(address => uint256) public lastLoginTime; // 记录每个账户上次drip时的登录时间
-
     address public owner;
 
     constructor() {
         owner = msg.sender;
-        
     }
 
     // // 记录用户登录时间（只有成功drip时才更新）
@@ -41,6 +39,10 @@ contract SepoliaFaucet {
         // 如果转账成功，则继续执行
     }
 
+    // 查询账户余额
+    function getBalance(address account) public view returns (uint256) {
+        return account.balance;
+    }
     // 允许合约所有者更改drip的数量
     function setDripAmount(uint256 _newAmount) external {
         require(msg.sender == owner, "Only the owner can set the drip amount");
