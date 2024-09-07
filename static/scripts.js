@@ -133,7 +133,7 @@ if (typeof window.ethereum !== 'undefined') {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ email:email })
         });
         const result = await response.json();
         alert(result.message);
@@ -146,7 +146,7 @@ if (typeof window.ethereum !== 'undefined') {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ code })
+            body: JSON.stringify({ code:code })
         });
         const result = await response.json();
         alert(result.message);
