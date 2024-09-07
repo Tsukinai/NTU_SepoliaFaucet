@@ -5,6 +5,7 @@ from web3 import Web3
 import random
 import string
 import re
+import logging
 import time
 
 # 合理的邮箱后缀列表
@@ -241,6 +242,10 @@ contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 def generate_verification_code(length=6):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
+# 将邮箱哈希成 bytes32
+def hash_email(email):
+    return w3.keccak(text=email)
+
 @app.route('/',methods=["get","post"])
 def index():
     return render_template('index.html')
@@ -288,6 +293,7 @@ def send_verification_code():
     
     verification_code = generate_verification_code()
     session['verification_code'] = verification_code
+    session['email'] = email
 
     msg = Message('Your Verification Code', sender='ntu.faucet@yahoo.com', recipients=[email])
     msg.body = f'Your verification code is {verification_code}'
@@ -315,22 +321,30 @@ def send_verification_code():
 def verify_code():
     code = request.json.get('code')
     user_address = request.json.get('user_address')  # 从请求中获取用户的以太坊地址
+    email = request.json.get('email')  # 从请求中获取用户的邮箱
 
-    if code == session.get('verification_code'):
-        # 调用智能合约的 verifyUser 函数
-        tx = contract.functions.verifyUser(user_address).buildTransaction({
-            'from': os.getenv('WALLET_ADDRESS'),
-            'nonce': w3.eth.getTransactionCount(os.getenv('WALLET_ADDRESS')),
-            'gas': 2000000,
-            'gasPrice': w3.toWei('50', 'gwei')
-        })
+    if code == session.get('verification_code') & email == session.get('email'):
+        try:
+            # 将邮箱哈希成 bytes32
+            email_hash = hash_email(email)
 
-        # 签名并发送交易
-        signed_tx = w3.eth.account.signTransaction(tx, private_key=private_key)
-        tx_hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-        print(f'Transaction hash: {tx_hash.hex()}')
+            # 调用智能合约的 verifyUser 函数
+            tx = contract.functions.verifyUser(user_address, email_hash).buildTransaction({
+                'from': os.environ.get('WALLET_ADDRESS'),
+                'nonce': w3.eth.getTransactionCount(os.environ.get('WALLET_ADDRESS')),
+                'gas': 2000000,
+                'gasPrice': w3.toWei('50', 'gwei')
+            })
 
-        return jsonify({'message': 'Verification successful'})
+            # 签名并发送交易
+            signed_tx = w3.eth.account.signTransaction(tx, private_key=private_key)
+            tx_hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+            print(f'Transaction hash: {tx_hash.hex()}')
+
+            return jsonify({'message': 'Verification successful'})
+        except Exception as e:
+            logging.error(f"Error verifying user: {e}")
+            return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'message': 'Invalid verification code'}), 400
 if __name__=='__main__':
