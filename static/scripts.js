@@ -142,12 +142,13 @@ if (typeof window.ethereum !== 'undefined') {
 
     document.getElementById('verifyCode').onclick = async () =>{
         const verifyCode = document.getElementById('verification_code').value;
+        const userAddress = document.getElementById('recipAddress').value;
         const response = await fetch('/verify_code', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ code: verifyCode })
+            body: JSON.stringify({ code: verifyCode, user_address: userAddress })
         });
         const result = await response.json();
         alert(result.message);
