@@ -51,13 +51,17 @@ if (typeof window.ethereum !== 'undefined') {
         }
     };
 
+    // 检查等待时间，要修改，需要传入邮箱地址
     document.getElementById('checkWaitTime').onclick = async () => {
         try {
-            const response = await fetch('/check_wait_time');
-            const result = await response.json();
-            if (result.error) {
-                throw new Error(result.error);
-            }
+            const walletAddress = document.getElementById('recipAddress').value;
+            const response = await fetch('/check_wait_time', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ wallet_address: walletAddress })
+            });
             const waitTimeInMinutes = result.wait_time;
             document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
             setProgress(waitTimeInMinutes, 60);
@@ -142,13 +146,13 @@ if (typeof window.ethereum !== 'undefined') {
 
     document.getElementById('verifyCode').onclick = async () =>{
         const verifyCode = document.getElementById('verification_code').value;
-        const userAddress = document.getElementById('recipAddress').value;
+        const walletAddress = document.getElementById('recipAddress').value;
         const response = await fetch('/verify_code', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ code: verifyCode, user_address: userAddress })
+            body: JSON.stringify({ code: verifyCode, wallet_address: walletAddress })
         });
         const result = await response.json();
         alert(result.message);
