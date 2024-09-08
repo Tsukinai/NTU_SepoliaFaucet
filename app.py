@@ -145,7 +145,12 @@ def verify_code():
     code = request.json.get('code')
     user_address = request.json.get('user_address')  # 从请求中获取用户的以太坊地址
     email = request.json.get('email')  # 从请求中获取用户的邮箱
-
+    print(f'Verification code: {code}')
+    print(f'Hash verification code: {hash_code(code)}')
+    print(f'Verification code get from session: {session.get('verification_code')}')
+    print(f'User address: {user_address}')
+    print(f'Email: {email}')
+    print(f'Email get from session: {session.get('email')}')
     if hash_code(code) == session.get('verification_code') and email == session.get('email'):
         try:
             # 将邮箱哈希成 bytes32
