@@ -123,7 +123,7 @@ if (typeof window.ethereum !== 'undefined') {
                 },
                 body: JSON.stringify({ email: email })
             });
-    
+
             // 检查响应的 Content-Type
             const contentType = response.headers.get('Content-Type');
             if (contentType && contentType.includes('application/json')) {
@@ -138,6 +138,35 @@ if (typeof window.ethereum !== 'undefined') {
             console.error('Error:', error);
             alert('An error occurred. Check console for details.');
         }
+    }
+
+    function submitForm() {
+        grecaptcha.enterprise.execute('6Lc19jgqAAAAAJXhHoa4yTDeo-OI18bG1k18NStW', {action: 'submit'})
+        .then(function(token) {
+            // 将 token 和 action 发送到后端
+            fetch('/verify-recaptcha', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token: token,
+                    action: 'submit' // 你可以根据需要设置不同的动作
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("reCAPTCHA 验证成功！");
+                    // 执行你的 drip 操作
+                } else {
+                    alert("reCAPTCHA 验证失败: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+            });
+        });
     }
 
     document.getElementById('verifyCode').onclick = async () =>{

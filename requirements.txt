@@ -1,4 +1,6 @@
-flask
+flask~=3.0.3
 gunicorn
+requests~=2.32.3
+google~=3.0.0
 Flask-Mail
 web3

@@ -1,4 +1,8 @@
+import json
 import os
+import sys
+
+import requests
 from flask import Flask, render_template, request, jsonify, session, make_response
 from flask_mail import Mail, Message
 from web3 import Web3
@@ -24,215 +28,223 @@ pattern = re.compile(r'^[^@]+@(?:e\.ntu\.edu\.sg|staff\.main\.ntu\.edu\.sg|stude
 app = Flask(__name__)
 app.secret_key = 'random_secret_key'
 
-# 从秘密文件夹中加载私钥
-with open('/etc/secrets/privatekey.txt') as key_file:
-    private_key = key_file.read().strip()
+try:
+	# 从秘密文件夹中加载私钥
+	with open('/etc/secrets/privatekey.txt') as key_file:
+		private_key = key_file.read().strip()
+	key_file.close()
 
-# 配置邮件服务器
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+	with open('config.json') as config_file:
+		config = json.load(config_file)
+		# 配置邮件服务器
+		app.config['MAIL_SERVER'] = config['smtp.gmail.com']
+		app.config['MAIL_PORT'] = config['MAIL_PORT']
+		app.config['MAIL_USE_TLS'] = bool(config['MAIL_USE_TLS'])
+		app.config['MAIL_USE_SSL'] = bool(config['MAIL_USE_SSL'])
+		app.config['MAIL_USERNAME'] = config['MAIL_USERNAME']
+		app.config['MAIL_PASSWORD'] = config['MAIL_PASSWORD']
+	mail = Mail(app)
 
-mail = Mail(app)
+	# 从环境变量中读取 INFURA_PROJECT_ID
+	infura_project_id = config['INFURA_PROJECT_ID']
+	config_file.close()
+	if not infura_project_id:
+		ValueError("No INFURA_PROJECT_ID set for Flask application")
 
-# 从环境变量中读取 INFURA_PROJECT_ID
-infura_project_id = os.getenv('INFURA_PROJECT_ID')
-if not infura_project_id:
-    raise ValueError("No INFURA_PROJECT_ID set for Flask application")
+	# 连接到以太坊节点
+	w3 = Web3(Web3.HTTPProvider(f'https://sepolia.infura.io/v3/{infura_project_id}'))
 
-# 连接到以太坊节点
-w3 = Web3(Web3.HTTPProvider(f'https://sepolia.infura.io/v3/{infura_project_id}'))
+except Exception as e:
+	print(f"init app error: {str(e)} at {e.__traceback__.tb_lineno}!")
+	sys.exit(1)
 
 # 合约地址和ABI
 contract_address = '0xA97Af4408Ed4518A0Fa2FAB64e70E6F8D1571e8C'
 contract_abi = [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "donate",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_userAddress",
-				"type": "address"
-			}
-		],
-		"name": "drip",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "dripAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getFaucetBalance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getRemainingWaitTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interval",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "isVerified",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "lastDripTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "ownerInterval",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_newAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "setDripAmount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_userAddress",
-				"type": "address"
-			}
-		],
-		"name": "verifyUser",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
-	}
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "donate",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_userAddress",
+                "type": "address"
+            }
+        ],
+        "name": "drip",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "dripAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getFaucetBalance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getRemainingWaitTime",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "interval",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "isVerified",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "lastDripTime",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "ownerInterval",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_newAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "setDripAmount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_userAddress",
+                "type": "address"
+            }
+        ],
+        "name": "verifyUser",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
+    }
 ]
 
 # 加载合约
@@ -240,15 +252,56 @@ contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
 # 生成随机验证码
 def generate_verification_code(length=6):
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+	return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 # 将邮箱哈希成 bytes32
 def hash_email(email):
-    return w3.keccak(text=email)
+	return w3.keccak(text=email)
 
 @app.route('/',methods=["get","post"])
 def index():
     return render_template('index.html')
+# 替换成你的 API Key
+API_KEY = "AIzaSyBw4amxPcKXY8dKrO3RKG7vIL8X3oU95Uk"
+RECAPTCHA_SITE_KEY = "6Lc19jgqAAAAAJXhHoa4yTDeo-OI18bG1k18NStW"
+PROJECT_ID = "ntu-sepolia-fauc-1725680217236"
+
+# Flask 路由来处理 POST 请求
+@app.route('/verify-recaptcha', methods=['POST'])
+def verify_recaptcha():
+    # 从前端获取 token 和 action
+    token = request.json.get('token')
+    user_action = request.json.get('action', '')  # 可选的用户动作
+
+    # 创建请求体
+    request_body = {
+        "event": {
+            "token": token,
+            "expectedAction": user_action,
+            "siteKey": RECAPTCHA_SITE_KEY
+        }
+    }
+
+    # 保存 request.json 到文件 (可选)
+    with open('request.json', 'w') as json_file:
+        json.dump(request_body, json_file, indent=4)
+
+    # 构建请求 URL
+    url = f"https://recaptchaenterprise.googleapis.com/v1/projects/{PROJECT_ID}/assessments?key={API_KEY}"
+
+    # 发送 POST 请求到 Google 的 reCAPTCHA API
+    response = requests.post(url, json=request_body)
+    # 检查响应结果
+    if response.status_code == 200:
+        result = response.json()
+        print(result)
+        # 检查 reCAPTCHA 验证结果
+        if result.get('tokenProperties', {}).get('valid', False):
+            return jsonify({"success": True, "message": "reCAPTCHA 验证通过", "details": result})
+        else:
+            return jsonify({"success": False, "message": "reCAPTCHA 验证失败", "error": result})
+    else:
+        return jsonify({"success": False, "message": "请求失败", "status_code": response.status_code, "error": response.text})
 @app.route('/get_balance', methods=['GET'])
 def get_balance():
     try:
@@ -282,7 +335,7 @@ def send_verification_code():
     email = request.json.get('email')
     if not pattern.match(email):
         return jsonify({'message': 'Invalid email domain'}), 400
-    
+
     # 检查上次发送验证码的时间
     last_sent_time = request.cookies.get('last_sent_time')
     current_time = time.time()
@@ -290,7 +343,7 @@ def send_verification_code():
         remaining_time = 60 - (current_time - float(last_sent_time))
         if remaining_time > 0:
             return jsonify({'message': 'Please wait 60 seconds before requesting another code', 'remaining_time': remaining_time}), 429
-    
+
     verification_code = generate_verification_code()
     session['verification_code'] = verification_code
     session['email'] = email
