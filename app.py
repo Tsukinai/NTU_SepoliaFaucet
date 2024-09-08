@@ -7,6 +7,7 @@ import string
 import re
 import logging
 import time
+import hashlib
 
 # 合理的邮箱后缀列表
 valid_domains = [
@@ -39,7 +40,7 @@ app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 mail = Mail(app)
 
 # 从环境变量中读取 INFURA_PROJECT_ID
-infura_project_id = os.getenv('INFURA_PROJECT_ID')
+infura_project_id = os.environ.get('INFURA_PROJECT_ID')
 if not infura_project_id:
     raise ValueError("No INFURA_PROJECT_ID set for Flask application")
 
@@ -47,193 +48,8 @@ if not infura_project_id:
 w3 = Web3(Web3.HTTPProvider(f'https://sepolia.infura.io/v3/{infura_project_id}'))
 
 # 合约地址和ABI
-contract_address = '0xA97Af4408Ed4518A0Fa2FAB64e70E6F8D1571e8C'
-contract_abi = [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "donate",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_userAddress",
-				"type": "address"
-			}
-		],
-		"name": "drip",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "dripAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getFaucetBalance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getRemainingWaitTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interval",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "isVerified",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "lastDripTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "ownerInterval",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_newAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "setDripAmount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_userAddress",
-				"type": "address"
-			}
-		],
-		"name": "verifyUser",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
-	}
-]
+contract_address = '0x90060a179Ab9CEb99E83f3Bb4Fc038006BB23cF8'
+contract_abi = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"donate","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bytes32","name":"_userEmail","type":"bytes32"}],"name":"drip","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"dripAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getFaucetBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"_userEmail","type":"bytes32"}],"name":"getRemainingWaitTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"interval","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"isVerified","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"lastDripTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ownerInterval","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newAmount","type":"uint256"}],"name":"setDripAmount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"_userEmail","type":"bytes32"}],"name":"verifyUser","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]
 
 # 加载合约
 contract = w3.eth.contract(address=contract_address, abi=contract_abi)
@@ -241,6 +57,10 @@ contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 # 生成随机验证码
 def generate_verification_code(length=6):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+# 将验证码哈希成 SHA-256
+def hash_code(code):
+    return hashlib.sha256(code.encode()).hexdigest()
 
 # 将邮箱哈希成 bytes32
 def hash_email(email):
@@ -289,12 +109,15 @@ def send_verification_code():
     if last_sent_time:
         remaining_time = 60 - (current_time - float(last_sent_time))
         if remaining_time > 0:
+            # 返回 429 Too Many Requests 状态码
             return jsonify({'message': 'Please wait 60 seconds before requesting another code', 'remaining_time': remaining_time}), 429
     
     verification_code = generate_verification_code()
-    session['verification_code'] = verification_code
+    # 将验证码哈希成 SHA-256
+    session['verification_code'] = hash_code(verification_code)
     session['email'] = email
 
+    # 发送邮件
     msg = Message('Your Verification Code', sender='ntu.faucet@yahoo.com', recipients=[email])
     msg.body = f'Your verification code is {verification_code}'
     msg.html = f'''
@@ -323,7 +146,7 @@ def verify_code():
     user_address = request.json.get('user_address')  # 从请求中获取用户的以太坊地址
     email = request.json.get('email')  # 从请求中获取用户的邮箱
 
-    if code == session.get('verification_code') & email == session.get('email'):
+    if hash_code(code) == session.get('verification_code') & email == session.get('email'):
         try:
             # 将邮箱哈希成 bytes32
             email_hash = hash_email(email)
