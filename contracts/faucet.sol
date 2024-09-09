@@ -23,9 +23,10 @@ contract SepoliaFaucet {
     }
 
     // 水龙头drip功能
-    function drip(address _userAddress, bytes32 _userEmail) external {
+    function drip(address _userAddress ,bytes32 _userEmail) external {
+        require(msg.sender == owner, "Only the owner can verify users");
         require(isVerified[_userEmail], "You must be verified to use the faucet");
-        uint256 applicableInterval = msg.sender == owner ? ownerInterval : interval;
+        uint256 applicableInterval = _userAddress == msg.sender ? ownerInterval : interval;
         
         require(block.timestamp >= lastDripTime[_userEmail] + applicableInterval, "You must wait for the required interval before dripping again");
         require(address(this).balance >= dripAmount, "Insufficient faucet balance");
