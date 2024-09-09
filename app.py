@@ -126,9 +126,10 @@ def drip():
 @app.route('/check_wait_time', methods=['GET'])
 def check_wait_time():
     try:
-        # 之后要改，这里不是call
-        wallet_address = request.json.get('user_address')
-        wait_time = contract.functions.getRemainingWaitTime(wallet_address).call()
+        email = session.get('email')  # 从请求中获取用户的邮箱
+        # 将邮箱哈希成 bytes32
+        email_hash = email_to_hex(email)
+        wait_time = contract.functions.getRemainingWaitTime(bytes(email_hash)).call()
         wait_time_in_minutes = (wait_time // 60) + (1 if wait_time % 60 else 0)
         return jsonify({'wait_time': wait_time_in_minutes})
     except Exception as e:
@@ -213,4 +214,4 @@ def verify_code():
     else:
         return jsonify({'message': 'Invalid verification code'}), 400
 if __name__=='__main__':
-    app.run(debug=True)
+    app.run()
