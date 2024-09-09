@@ -51,17 +51,16 @@ if (typeof window.ethereum !== 'undefined') {
         }
     };
 
-    // 检查等待时间，要修改，需要传入邮箱地址
+    // 检查等待时间
     document.getElementById('checkWaitTime').onclick = async () => {
         try {
-            const walletAddress = document.getElementById('recipAddress').value;
             const response = await fetch('/check_wait_time', {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ wallet_address: walletAddress })
+                }
             });
+            const result = await response.json(); // 解析响应为 JSON
             const waitTimeInMinutes = result.wait_time;
             document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
             setProgress(waitTimeInMinutes, 60);
