@@ -9,6 +9,10 @@ import logging
 import time
 import hashlib
 
+# 从 .env 文件中加载环境变量，本地环境用的
+# import dotenv
+# dotenv.load_dotenv("faucet.env")
+
 # 合理的邮箱后缀列表
 valid_domains = [
     '@e.ntu.edu.sg',
@@ -27,6 +31,8 @@ app.secret_key = 'random_secret_key'
 
 # 加载私钥
 private_key = os.environ.get('PRIVATE_KEY')
+if not private_key:
+    raise ValueError("No PRIVATE_KEY set for Flask application")
 
 # 配置邮件服务器
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -51,7 +57,7 @@ if w3.is_connected():
 else:
     print("未能连接到以太坊节点")
 # 合约地址和ABI
-contract_address = '0x90060a179Ab9CEb99E83f3Bb4Fc038006BB23cF8'
+contract_address = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432'
 contract_abi = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"donate","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bytes32","name":"_userEmail","type":"bytes32"}],"name":"drip","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"dripAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getFaucetBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"_userEmail","type":"bytes32"}],"name":"getRemainingWaitTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"interval","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"isVerified","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"lastDripTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ownerInterval","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newAmount","type":"uint256"}],"name":"setDripAmount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"_userEmail","type":"bytes32"}],"name":"verifyUser","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]
 
 # 加载合约
@@ -65,19 +71,11 @@ def generate_verification_code(length=6):
 def hash_code(code):
     return hashlib.sha256(code.encode()).hexdigest()
 
-# 有问题，需要修改
-def email_to_bytes32(email):
-    # 将邮箱地址编码为字节
-    email_bytes = email.encode('utf-8')
-    
-    # 使用 keccak256（或 sha3-256）对邮箱进行哈希处理
-    hash_bytes = hashlib.sha3_256(email_bytes).digest()
-    
-    # 将哈希值截断或填充为32字节（实际已经是32字节，不需要填充或截断）
-    bytes32_value = hash_bytes[:32]  # 确保为32字节
-    
-    return bytes32_value
+def email_to_hex(email):
+    # 使用 keccak 方法生成哈希值
+    email_hash = Web3.keccak(text=email)
 
+    return email_hash
 
 @app.route('/',methods=["get","post"])
 def index():
@@ -95,17 +93,33 @@ def get_balance():
 def drip():
     try:
         user_address = request.json.get('user_address')
+        wallet_address = os.environ.get("WALLET_ADDRESS")
         # 将用户地址转换为校验和地址
         checksum_address = Web3.to_checksum_address(user_address)
         # 构建交易，调用合约的 drip 方法，并传递 user_address
-        email = session.get('email')  # 从请求中获取用户的邮箱
-         # 打印调试信息
-        print(f"调用 drip 方法，用户地址: {user_address}, 邮箱: {email}")
-        tx_hash = contract.functions.drip(checksum_address, hash_email(email)).transact({'from': checksum_address})
-        # 打印交易哈希
+        email = session.get('email')  # 从请求中获取用户的邮箱\
+        email_hash = email_to_hex(email)
+
+        # 获取当前的 gasPrice 和 nonce
+        gas_price = w3.eth.gas_price
+        nonce = w3.eth.get_transaction_count(wallet_address)
+
+        # 构建交易
+        tx = contract.functions.drip(checksum_address, bytes(email_hash)).build_transaction({
+            'from': wallet_address,
+            'nonce': nonce,
+            'gas': 2000000,
+            'gasPrice':  gas_price
+        })
+
+        # 签名交易
+        signed_tx = Account.sign_transaction(tx, private_key=private_key)
+
+        # 发送交易
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         print(f"交易哈希: {tx_hash.hex()}")
 
-        return jsonify({'message': 'Drip successful!'})
+        return jsonify({'message': 'Drip successful!', 'transaction_hash': tx_hash.hex()})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -113,7 +127,7 @@ def drip():
 def check_wait_time():
     try:
         # 之后要改，这里不是call
-        wallet_address = request.json.get('wallet_address')
+        wallet_address = request.json.get('user_address')
         wait_time = contract.functions.getRemainingWaitTime(wallet_address).call()
         wait_time_in_minutes = (wait_time // 60) + (1 if wait_time % 60 else 0)
         return jsonify({'wait_time': wait_time_in_minutes})
@@ -138,7 +152,6 @@ def send_verification_code():
     verification_code = generate_verification_code()
     # 将验证码哈希成 SHA-256
     session['verification_code'] = hash_code(verification_code)
-    print(f"Verification code: {verification_code}")
     session['email'] = email
 
     # 发送邮件
@@ -175,23 +188,25 @@ def verify_code():
     if hash_code(code) == session.get('verification_code') and email == session.get('email'):
         try:
             # 将邮箱哈希成 bytes32
-            email_hash = email_to_bytes32(email)
-            print(f"Email hash: {email_hash}")
-            print(f"Wallet address: {wallet_address}")
+            email_hash = email_to_hex(email)
 
+            # 获取当前的 gasPrice 和 nonce
+            gas_price = w3.eth.gas_price
+            nonce = w3.eth.get_transaction_count(wallet_address)
+            
             # 调用智能合约的 verifyUser 函数， 目前有问题，需要修改
-            tx = contract.functions.verifyUser(email_hash).build_transaction({
+            tx = contract.functions.verifyUser(bytes(email_hash)).build_transaction({
                 'from': wallet_address,
-                'nonce': w3.eth.get_transaction_count(wallet_address),
+                'nonce': nonce,
                 'gas': 2000000,
-                'gasPrice': w3.to_wei('50', 'gwei')
+                'gasPrice': gas_price
             })
             # 签名并发送交易
             signed_tx = Account.sign_transaction(tx, private_key=private_key)
-            tx_hash = w3.eth.send_transaction(signed_tx.rawTransaction)
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
             print(f'Transaction hash: {tx_hash.hex()}')
 
-            return jsonify({'message': 'Verification successful'})
+            return jsonify({'message': 'Verification successful', 'transaction_hash': tx_hash.hex()})
         except Exception as e:
             logging.error(f"Error verifying user: {e}")
             return jsonify({'error': str(e)}), 500
