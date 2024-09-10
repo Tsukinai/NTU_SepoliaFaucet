@@ -3,7 +3,8 @@ let userAddress;
 // Initialize Web3
 if (typeof window.ethereum !== 'undefined') {
     const web3 = new Web3(window.ethereum);
-    ethereum.request({ method: 'eth_requestAccounts' });
+    // ethereum.request({ method: 'eth_requestAccounts' });
+
     document.getElementById('getBalance').onclick = async () => {
         try {
             const response = await fetch('/get_balance');
@@ -62,8 +63,10 @@ if (typeof window.ethereum !== 'undefined') {
             });
             const result = await response.json(); // 解析响应为 JSON
             const waitTimeInMinutes = result.wait_time;
+            // debug
+            // const waitTimeInMinutes = 599;
             document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
-            setProgress(waitTimeInMinutes, 60);
+            setProgress(waitTimeInMinutes, 600);
             document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInMinutes} minutes`;
             animateResult();
         } catch (error) {
@@ -143,6 +146,32 @@ if (typeof window.ethereum !== 'undefined') {
         }
     }
 
+    document.getElementById('inquire').onclick = async () => {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const web3 = new Web3(window.ethereum);
+
+                // 获取当前账户
+                const accounts = await web3.eth.getAccounts();
+                const account = accounts[0];
+
+                // 获取余额
+                const balance = await web3.eth.getBalance(account);
+
+                // 将余额从Wei转换为Ether
+                const balanceInEther = web3.utils.fromWei(balance, 'ether');
+
+                document.getElementById('result').innerText = `Your Balance: ${balanceInEther} ETH`;
+                animateResult();
+            } catch (error) {
+                console.error("User denied account access", error);
+            }
+        } else {
+            console.error("MetaMask not installed");
+        }
+    }
+
     document.getElementById('verifyCode').onclick = async () =>{
         const verifyCode = document.getElementById('verification_code').value;
         const userAddress = document.getElementById('recipAddress').value;
@@ -154,6 +183,14 @@ if (typeof window.ethereum !== 'undefined') {
             body: JSON.stringify({ code: verifyCode, user_address: userAddress })
         });
         const result = await response.json();
-        alert(result.message);
+        if (result['code'] === 200) {
+            const overlay = document.getElementById('overlay');
+            const mainContent = document.getElementById('mainContent');
+            overlay.style.display = 'none';  // 隐藏模糊遮罩和验证码组件
+            mainContent.style.display = 'block';  // 显示主要内容
+        }
+        else {
+            alert(result.message);
+        }
     }
 }

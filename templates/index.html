@@ -7,6 +7,19 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100 dark:bg-gray-800 transition-colors duration-300">
+    <div id="overlay">
+        <div id="verificationContainer" class="neumorphic">
+            <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
+                <h1 class="text-2xl font-bold mb-4">NTU Verification</h1>
+                <input type="email" id="email" placeholder="Enter your NTU email" class="w-full p-2 mb-4 border rounded">
+                <button id="sendVerificationCode" class="neumorphic p-2 rounded-full mb-4">Send Verification Code</button>
+                <input type="text" id="verification_code" placeholder="Enter verification code" class="w-full p-2 mb-4 border rounded">
+                <button id="verifyCode" class="neumorphic p-2 rounded-full">Verify Code</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainContent">
     <div class="container mx-auto px-4 py-8">
         <!-- <div class="flex justify-end mb-4">
             <button id="darkModeToggle" class="neumorphic p-2 rounded-full">
@@ -33,23 +46,13 @@
                     <button id="inquire"
                         class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Get Self Balance</button>
                 </div>
-                <div class="container mx-auto px-4 py-8">
-                    <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
-                        <h1 class="text-2xl font-bold mb-4">NTU Verification</h1>
-                        <input type="email" id="email" placeholder="Enter your NTU email" class="w-full p-2 mb-4 border rounded">
-                        <button id="sendVerificationCode" class="neumorphic p-2 rounded-full mb-4">Send Verification Code</button>
-                        <br>
-                        <input type="text" id="verification_code" placeholder="Enter verification code" class="w-full p-2 mb-4 border rounded">
-                        <button id="verifyCode" class="neumorphic p-2 rounded-full">Verify Code</button>
-                    </div>
-                </div>
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
                     <div class="relative w-32 h-32 mb-4">
                         <svg class="w-full h-full" viewBox="0 0 100 100">
                             <circle class="text-gray-200 stroke-current" stroke-width="10" cx="50" cy="50" r="40"
-                                fill="none" />
+                                fill="none"></circle>
                             <circle class="progress-ring__circle text-blue-500 stroke-current" stroke-width="10" cx="50"
-                                cy="50" r="40" fill="none" />
+                                cy="50" r="40" fill="none"></circle>
                         </svg>
                         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
                             <span id="waitTimeText" class="text-2xl font-bold text-gray-800 dark:text-gray-200"></span>
@@ -70,6 +73,7 @@
                     class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Drip 0.1</button>
             </div>
         </div>
+        <br>
         <div class="neumorphic rounded-lg p-8">
             <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Donate to Faucet</h2>
             <div class="flex flex-col md:flex-row items-center gap-4">
@@ -81,10 +85,25 @@
         </div>
         <p id="result" class="mt-8 text-xl font-semibold text-center text-gray-800 dark:text-gray-200"></p>
     </div>
+    </div>
+    <div class="neumorphic rounded-lg p-8 mt-8">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Friendly Links</h2>
+        <div class="flex flex-col md:flex-row items-center gap-4">
+            <a href="https://testnets.opensea.io/zh-CN/collection/lena-5" target="_blank"
+               class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
+                Opensea Collection (Lena)
+            </a>
+            <a href="https://zefancoin.onrender.com/" target="_blank"
+               class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
+                Zefan Coin
+            </a>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+
 </body>
 
 </html>

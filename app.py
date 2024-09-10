@@ -133,6 +133,7 @@ def check_wait_time():
         wait_time_in_minutes = (wait_time // 60) + (1 if wait_time % 60 else 0)
         return jsonify({'wait_time': wait_time_in_minutes})
     except Exception as e:
+        print(f"drip error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/send_verification_code', methods=["POST"])
@@ -148,7 +149,7 @@ def send_verification_code():
         remaining_time = 60 - (current_time - float(last_sent_time))
         if remaining_time > 0:
             # 返回 429 Too Many Requests 状态码
-            return jsonify({'message': 'Please wait 60 seconds before requesting another code', 'remaining_time': remaining_time}), 429
+            return jsonify({'message': f"Please wait {int(remaining_time)} seconds before requesting another code", 'remaining_time': remaining_time}), 429
     
     verification_code = generate_verification_code()
     # 将验证码哈希成 SHA-256
@@ -187,30 +188,38 @@ def verify_code():
 
     # 检查验证码是否正确
     if hash_code(code) == session.get('verification_code') and email == session.get('email'):
-        try:
-            # 将邮箱哈希成 bytes32
-            email_hash = email_to_hex(email)
-
-            # 获取当前的 gasPrice 和 nonce
-            gas_price = w3.eth.gas_price
-            nonce = w3.eth.get_transaction_count(wallet_address)
-            
-            # 调用智能合约的 verifyUser 函数， 目前有问题，需要修改
-            tx = contract.functions.verifyUser(bytes(email_hash)).build_transaction({
-                'from': wallet_address,
-                'nonce': nonce,
-                'gas': 2000000,
-                'gasPrice': gas_price
-            })
-            # 签名并发送交易
-            signed_tx = Account.sign_transaction(tx, private_key=private_key)
-            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            print(f'Transaction hash: {tx_hash.hex()}')
-
-            return jsonify({'message': 'Verification successful', 'transaction_hash': tx_hash.hex()})
-        except Exception as e:
-            logging.error(f"Error verifying user: {e}")
-            return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'code': 200
+            ,'message': 'Verification successful'
+                           # todo
+                           # , 'transaction_hash': tx_hash.hex()
+                        }
+                       )
+        # todo
+        # try:
+        #     # 将邮箱哈希成 bytes32
+        #     email_hash = email_to_hex(email)
+        #
+        #     # 获取当前的 gasPrice 和 nonce
+        #     gas_price = w3.eth.gas_price
+        #     nonce = w3.eth.get_transaction_count(wallet_address)
+        #
+        #     # 调用智能合约的 verifyUser 函数， 目前有问题，需要修改
+        #     tx = contract.functions.verifyUser(bytes(email_hash)).build_transaction({
+        #         'from': wallet_address,
+        #         'nonce': nonce,
+        #         'gas': 2000000,
+        #         'gasPrice': gas_price
+        #     })
+        #     # 签名并发送交易
+        #     signed_tx = Account.sign_transaction(tx, private_key=private_key)
+        #     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        #     print(f'Transaction hash: {tx_hash.hex()}')
+        #
+        #     return jsonify({'message': 'Verification successful', 'transaction_hash': tx_hash.hex()})
+        # except Exception as e:
+        #     logging.error(f"Error verifying user: {e}")
+        #     return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'message': 'Invalid verification code'}), 400
 if __name__=='__main__':
