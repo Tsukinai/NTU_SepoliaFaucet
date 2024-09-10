@@ -6,10 +6,10 @@
     <title>NTU Sepolia Faucet</title>
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
-<body class="bg-gray-100 dark:bg-gray-800 transition-colors duration-300">
+<body class="bg-gray-100 transition-colors duration-300">
     <div id="overlay">
         <div id="verificationContainer" class="neumorphic">
-            <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
+            <div class="bg-white p-6 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold mb-4">NTU Verification</h1>
                 <input type="email" id="email" placeholder="Enter your NTU email" class="w-full p-2 mb-4 border rounded">
                 <button id="sendVerificationCode" class="neumorphic p-2 rounded-full mb-4">Send Verification Code</button>
@@ -31,20 +31,20 @@
             </button>
         </div> -->
         <div class="neumorphic rounded-lg p-8 mb-8">
-            <h1 class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200">NTU Sepolia Faucet</h1>
+            <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">NTU Sepolia Faucet</h1>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
                     <img src="{{ url_for('static', filename='kafka.jpg') }}" alt="Ethereum Logo"
                         class="w-32 h-32 mb-4 rounded-full animate-float">
                     <button id="getBalance"
-                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Get
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300">Get
                         Faucet Balance</button>
                 </div>
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
                     <img src="{{ url_for('static', filename='happy_w.jpg') }}" alt="Drip Icon"
                         class="w-32 h-32 mb-4 rounded-full animate-float">
                     <button id="inquire"
-                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Get Self Balance</button>
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300">Get Self Balance</button>
                 </div>
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
                     <div class="relative w-32 h-32 mb-4">
@@ -55,46 +55,46 @@
                                 cy="50" r="40" fill="none"></circle>
                         </svg>
                         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                            <span id="waitTimeText" class="text-2xl font-bold text-gray-800 dark:text-gray-200"></span>
+                            <span id="waitTimeText" class="text-2xl font-bold text-gray-800"></span>
                         </div>
                     </div>
                     <button id="checkWaitTime"
-                        class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300">Check
+                        class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300">Check
                         Wait Time</button>
                 </div>
             </div>
         </div>
+        <p id="result" class="mt-8 text-xl font-semibold text-center text-gray-800"></p>
         <div class="neumorphic rounded-lg p-8">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Drip from Faucet</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Drip from Faucet</h2>
             <div class="flex flex-col md:flex-row items-center gap-4">
                 <input type="text" id="recipAddress" placeholder="Enter your Address here"
-                    class="neumorphic-inset rounded-full px-4 py-2 w-full md:w-2/3 focus:outline-none text-gray-800 dark:text-gray-200">
+                    class="neumorphic-inset rounded-full px-4 py-2 w-full md:w-2/3 focus:outline-none text-gray-800">
                 <button id="drip"
-                    class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Drip 0.1</button>
+                    class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Drip 0.1</button>
             </div>
         </div>
         <br>
         <div class="neumorphic rounded-lg p-8">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Donate to Faucet</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Donate to Faucet</h2>
             <div class="flex flex-col md:flex-row items-center gap-4">
                 <input type="number" id="amount" placeholder="Amount to donate (in ether)"
-                    class="neumorphic-inset rounded-full px-4 py-2 w-full md:w-2/3 focus:outline-none text-gray-800 dark:text-gray-200">
+                    class="neumorphic-inset rounded-full px-4 py-2 w-full md:w-2/3 focus:outline-none text-gray-800">
                 <button id="donate"
-                    class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Donate</button>
+                    class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">Donate</button>
             </div>
         </div>
-        <p id="result" class="mt-8 text-xl font-semibold text-center text-gray-800 dark:text-gray-200"></p>
     </div>
     </div>
     <div class="neumorphic rounded-lg p-8 mt-8">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Friendly Links</h2>
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Friendly Links</h2>
         <div class="flex flex-col md:flex-row items-center gap-4">
             <a href="https://testnets.opensea.io/zh-CN/collection/lena-5" target="_blank"
-               class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
+               class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
                 Opensea Collection (Lena)
             </a>
             <a href="https://zefancoin.onrender.com/" target="_blank"
-               class="neumorphic px-6 py-3 rounded-full text-gray-800 dark:text-gray-200 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
+               class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
                 Zefan Coin
             </a>
         </div>

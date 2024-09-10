@@ -6,13 +6,13 @@
     box-shadow: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #f9f9f9;
 }
 
-.dark .neumorphic {
-    box-shadow: 12px 12px 24px #1a1a1a, -12px -12px 24px #2c2c2c;
-}
+/*.dark .neumorphic {*/
+/*    box-shadow: 12px 12px 24px #1a1a1a, -12px -12px 24px #2c2c2c;*/
+/*}*/
 
-.dark .neumorphic-inset {
-    box-shadow: inset 6px 6px 12px #1a1a1a, inset -6px -6px 12px #2c2c2c;
-}
+/*.dark .neumorphic-inset {*/
+/*    box-shadow: inset 6px 6px 12px #1a1a1a, inset -6px -6px 12px #2c2c2c;*/
+/*}*/
 
 .animate-float {
     animation: float 6s ease-in-out infinite;
@@ -55,7 +55,7 @@
 
 /* 验证组件样式，居中显示 */
 #verificationContainer {
-    background-color: #374149;
+    background-color: white;
     border-radius: 16px;
     padding: 40px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);

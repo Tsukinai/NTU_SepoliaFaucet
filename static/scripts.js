@@ -66,7 +66,7 @@ if (typeof window.ethereum !== 'undefined') {
             // debug
             // const waitTimeInMinutes = 599;
             document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
-            setProgress(waitTimeInMinutes, 600);
+            setProgress(waitTimeInMinutes, 1440);
             document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInMinutes} minutes`;
             animateResult();
         } catch (error) {
@@ -183,7 +183,8 @@ if (typeof window.ethereum !== 'undefined') {
             body: JSON.stringify({ code: verifyCode, user_address: userAddress })
         });
         const result = await response.json();
-        if (result['code'] === 200) {
+        console.log(result)
+        if (response.ok) {
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');
             overlay.style.display = 'none';  // 隐藏模糊遮罩和验证码组件
