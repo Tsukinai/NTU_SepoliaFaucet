@@ -62,12 +62,14 @@ if (typeof window.ethereum !== 'undefined') {
                 }
             });
             const result = await response.json(); // 解析响应为 JSON
-            const waitTimeInMinutes = result.wait_time;
+            const waitTimeInHours = Math.floor(result.wait_time / 60);
+            const waitTimeInMinutes = result.wait_time % 60;
+
             // debug
             // const waitTimeInMinutes = 599;
-            document.getElementById('waitTimeText').innerText = `${waitTimeInMinutes}m`;
-            setProgress(waitTimeInMinutes, 1440);
-            document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInMinutes} minutes`;
+            document.getElementById('waitTimeText').innerText = `${waitTimeInHours}h`;
+            setProgress(result.wait_time, 1440);
+            document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInHours} hours ${waitTimeInMinutes} minutes `;
             animateResult();
         } catch (error) {
             console.error(error);
