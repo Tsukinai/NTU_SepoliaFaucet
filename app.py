@@ -222,5 +222,6 @@ def verify_code():
         #     return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'message': 'Invalid verification code'}), 400
+
 if __name__=='__main__':
     app.run()
