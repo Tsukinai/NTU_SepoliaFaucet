@@ -205,6 +205,7 @@ if (typeof window.ethereum !== 'undefined') {
     const web3 = new Web3(window.ethereum);
     const contract = new web3.eth.Contract(contractABI, contractAddress);
 
+    // 捐款
     document.getElementById('donate').onclick = async () => {
         try {
             const accounts = await ethereum.request({method: 'eth_requestAccounts'});
