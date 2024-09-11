@@ -1,9 +1,210 @@
 let web3;
 let userAddress;
+
+const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
+const contractABI = [
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "donate",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_userAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_userEmail",
+                "type": "bytes32"
+            }
+        ],
+        "name": "drip",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "dripAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getFaucetBalance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_userEmail",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getRemainingWaitTime",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "interval",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "isVerified",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "lastDripTime",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "ownerInterval",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_newAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "setDripAmount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_userEmail",
+                "type": "bytes32"
+            }
+        ],
+        "name": "verifyUser",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
+    }
+]
+
 // Initialize Web3
 if (typeof window.ethereum !== 'undefined') {
     const web3 = new Web3(window.ethereum);
     // ethereum.request({ method: 'eth_requestAccounts' });
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
 
     document.getElementById('getBalance').onclick = async () => {
         try {
@@ -27,7 +228,7 @@ if (typeof window.ethereum !== 'undefined') {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ user_address: userAddress })
+                body: JSON.stringify({user_address: userAddress})
             });
             const result = await response.json();
             if (result.error) {
@@ -44,7 +245,7 @@ if (typeof window.ethereum !== 'undefined') {
         try {
             const accounts = await web3.eth.getAccounts();
             const amount = document.getElementById('amount').value;
-            await contract.methods.donate().send({ from: accounts[0], value: web3.utils.toWei(amount, 'ether') });
+            await contract.methods.donate().send({from: accounts[0], value: web3.utils.toWei(amount, 'ether')});
             document.getElementById('result').innerText = 'Donation successful!';
             animateResult();
         } catch (error) {
@@ -79,7 +280,7 @@ if (typeof window.ethereum !== 'undefined') {
     // 获取用户地址
     async function getUserAddress() {
         if (typeof window.ethereum !== 'undefined') {
-            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            const accounts = await ethereum.request({method: 'eth_requestAccounts'});
             return accounts[0];
         } else {
             throw new Error('Ethereum wallet is not connected');
@@ -129,9 +330,9 @@ if (typeof window.ethereum !== 'undefined') {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email: email })
+                body: JSON.stringify({email: email})
             });
-    
+
             // 检查响应的 Content-Type
             const contentType = response.headers.get('Content-Type');
             if (contentType && contentType.includes('application/json')) {
@@ -151,7 +352,7 @@ if (typeof window.ethereum !== 'undefined') {
     document.getElementById('inquire').onclick = async () => {
         if (typeof window.ethereum !== 'undefined') {
             try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await window.ethereum.request({method: 'eth_requestAccounts'});
                 const web3 = new Web3(window.ethereum);
 
                 // 获取当前账户
@@ -174,7 +375,7 @@ if (typeof window.ethereum !== 'undefined') {
         }
     }
 
-    document.getElementById('verifyCode').onclick = async () =>{
+    document.getElementById('verifyCode').onclick = async () => {
         const verifyCode = document.getElementById('verification_code').value;
         const userAddress = document.getElementById('recipAddress').value;
         const response = await fetch('/verify_code', {
@@ -182,7 +383,7 @@ if (typeof window.ethereum !== 'undefined') {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ code: verifyCode, user_address: userAddress })
+            body: JSON.stringify({code: verifyCode, user_address: userAddress})
         });
         const result = await response.json();
         console.log(result)
@@ -191,8 +392,7 @@ if (typeof window.ethereum !== 'undefined') {
             const mainContent = document.getElementById('mainContent');
             overlay.style.display = 'none';  // 隐藏模糊遮罩和验证码组件
             mainContent.style.display = 'block';  // 显示主要内容
-        }
-        else {
+        } else {
             alert(result.message);
         }
     }
