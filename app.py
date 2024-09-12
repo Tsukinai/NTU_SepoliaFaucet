@@ -184,12 +184,12 @@ def send_verification_code():
 @app.route('/verify_code', methods=["POST"])
 def verify_code():
     code = request.json.get('code')
-    email = session.get('to_be_verified_email')  # 从请求中获取用户的邮箱
+    email = request.json.get('user_address')  # 从请求中获取用户的邮箱
 
     wallet_address = os.environ.get("WALLET_ADDRESS")
 
     # 检查验证码是否正确
-    if hash_code(code) == session.get('verification_code') and email == session.get('email'):
+    if hash_code(code) == session.get('verification_code') and email == session.get('to_be_verified_email'):
         try:
             # 验证成功，删除验证码
             session.pop('verification_code')
