@@ -126,14 +126,17 @@ def drip():
 @app.route('/check_wait_time', methods=['GET'])
 def check_wait_time():
     try:
-        email = session.get('email')  # 从请求中获取用户的邮箱
+
+        email = session.get('email', None)  # 从请求中获取用户的邮箱
+        if email is None:
+            return jsonify({'error': 'No email provided'}), 500
         # 将邮箱哈希成 bytes32
         email_hash = email_to_hex(email)
         wait_time = contract.functions.getRemainingWaitTime(bytes(email_hash)).call()
         wait_time_in_minutes = (wait_time // 60) + (1 if wait_time % 60 else 0)
         return jsonify({'wait_time': wait_time_in_minutes})
     except Exception as e:
-        print(f"drip error: {str(e)}")
+        print(f"check_wait_time error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/send_verification_code', methods=["POST"])
@@ -237,7 +240,6 @@ def verify_code():
 
 @app.route('/get_session')
 def get_session():
-    session.clear()
     # 将 session 对象中的数据转换为一个标准的字典
     session_data = {key: session[key] for key in session}
     # 返回包含 session 数据的 JSON 响应

@@ -377,7 +377,7 @@ document.getElementById('verifyCode').onclick = async () => {
 document.getElementById('checkWaitTime').onclick = async () => {
     try {
         const remainMinutes = await getRemainMinutes()
-        setWaitTime(remainMinutes)
+        if (remainMinutes !== -1) setWaitTime(remainMinutes)
     } catch (error) {
         console.error(error);
     }
@@ -400,7 +400,14 @@ async function getRemainMinutes() {
             }
         });
     const result = await response.json();
-    return result.wait_time;
+    if (response.ok) {
+        return result.wait_time;
+    }
+    else {
+       alert(result.error);
+       return -1;
+    }
+
 }
 
 // 动画效果
