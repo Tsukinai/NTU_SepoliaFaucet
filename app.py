@@ -10,8 +10,8 @@ import time
 import hashlib
 
 # 从 .env 文件中加载环境变量，本地环境用的
-# import dotenv
-# dotenv.load_dotenv("faucet.env")
+import dotenv
+dotenv.load_dotenv("faucet.env")
 
 # 合理的邮箱后缀列表
 valid_domains = [
@@ -197,7 +197,7 @@ def verify_code():
             email_hash = email_to_hex(email)
 
             # 获取当前的 gasPrice 和 nonce
-            gas_price = w3.eth.gas_price
+            gas_price = w3.eth.gas_price * 1.3
             nonce = w3.eth.get_transaction_count(wallet_address)
 
             # 调用智能合约的 verifyUser 函数， 目前有问题，需要修改
@@ -205,7 +205,7 @@ def verify_code():
                 'from': wallet_address,
                 'nonce': nonce,
                 'gas': 2000000,
-                'gasPrice': gas_price
+                'gasPrice': int(gas_price)
             })
             # 签名并发送交易
             signed_tx = Account.sign_transaction(tx, private_key=private_key)
