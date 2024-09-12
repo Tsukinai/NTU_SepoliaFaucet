@@ -256,7 +256,7 @@ document.getElementById('getBalance').onclick = async () => {
     }
 };
 
-// 获取等待时间
+// 滴水
 document.getElementById('drip').onclick = async () => {
     try {
         const userAddress = document.getElementById('recipAddress').value;
