@@ -396,6 +396,7 @@ document.getElementById('sendVerificationCode').onclick = async () => {
 document.getElementById('verifyCode').onclick = async () => {
     const verifyButton = document.getElementById('verifyCode');
     verifyButton.disabled = true;  // 禁用按钮
+    verifyButton.innerText = 'Processing...'
     try {
         const verifyCode = document.getElementById('verification_code').value;
         const userAddress = document.getElementById('recipAddress').value;
@@ -423,6 +424,7 @@ document.getElementById('verifyCode').onclick = async () => {
         alert('Verification failed. Please try again.');
     } finally {
         // 无论成功还是失败，都重新启用按钮
+        verifyButton.innerText = 'Verify Code'
         verifyButton.disabled = false;
     }
 
