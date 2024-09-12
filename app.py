@@ -189,7 +189,7 @@ def verify_code():
     wallet_address = os.environ.get("WALLET_ADDRESS")
 
     # 检查验证码是否正确
-    if hash_code(code) == session.get('verification_code') and email == session.get('email'):
+    if hash_code(code) == session.get('verification_code') and email == to_be_verified_email:
         try:
             # 验证成功，删除验证码
             session.pop('verification_code')
