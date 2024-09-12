@@ -10,6 +10,11 @@ button.neumorphic {
     box-shadow: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #f9f9f9;
 }
 
+/* 友链圆形边框 */
+.rounded-icon {
+    border-radius: 50%;
+    border: 1px rgba(255, 255, 255, 0.0);
+}
 /*.dark .neumorphic {*/
 /*    box-shadow: 12px 12px 24px #1a1a1a, -12px -12px 24px #2c2c2c;*/
 /*}*/
