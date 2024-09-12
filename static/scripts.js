@@ -1,6 +1,6 @@
 let web3;
 let userAddress;
-console.log('this is test version 18:57')
+console.log('this is test version 19:32')
 pendingAction = null;
 const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
 const contractABI = [
@@ -269,10 +269,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();  // 解析 JSON 响应
                 const session = data.session;  // 提取 session 对象
                 console.log(session);
-
+                if (session.email == null) {
+                    alert(`You should enter address!`)
+                    return
+                }
                 // 如果 session 中有 email，直接执行 drip()
                 const minutes = await getRemainMinutes()
-                if (minutes !== 0) {
+                if (minutes === -1) {
+                    alert(`You should enter address!`)
+                    return
+                }
+                if (minutes > 0) {
                     alert(`You should wait ${minutes} minutes for another try.`)
                     setWaitTime(minutes);
                     animateResult();
@@ -475,6 +482,11 @@ function setProgress(current, max) {
     const offset = circumference - (current / max) * circumference;
     circle.style.strokeDashoffset = offset;
 }
+
+document.getElementById('closeButton').onclick = function() {
+    document.getElementById('verificationContainer').style.display = 'none';
+    document.getElementById('blurBackground').style.display = 'none';  // 隐藏背景模糊效果
+};
 
 
 

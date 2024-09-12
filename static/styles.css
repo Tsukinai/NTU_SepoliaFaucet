@@ -103,3 +103,12 @@ button:disabled {
     display: none;                     /* 默认隐藏 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+.close-button {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+.close-button:hover {
+    color: #2471EA;
+}
