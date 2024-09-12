@@ -1,6 +1,7 @@
 let web3;
 let userAddress;
 console.log('this is test version')
+pendingAction = null;
 const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
 const contractABI = [
     {
@@ -258,6 +259,7 @@ document.getElementById('getBalance').onclick = async () => {
 
 document.addEventListener('DOMContentLoaded', function() {
     const dripButton = document.getElementById('drip');
+    const checkRemainTimeButton = document.getElementById('checkWaitTime');
 
     if (dripButton) {
         dripButton.onclick = async function(event) {
@@ -273,18 +275,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     await drip();
                 } else {
                     // 如果 session 中没有 email，弹出验证窗口
-                    const button = event.target;
-                    const container = document.getElementById('verificationContainer');
-
-                    // 获取按钮位置
-                    const buttonRect = button.getBoundingClientRect();
-
-                    // 设置验证窗口相对于按钮的位置
-                    container.style.left = buttonRect.left + 'px';
-                    container.style.top = (buttonRect.bottom + window.scrollY) + 'px';
-
-                    // 显示验证窗口
-                    container.style.display = 'block';
+                    showVerificationBox(event);
+                    pendingAction = drip;
                 }
             } catch (error) {
                 console.error(error);
@@ -293,7 +285,43 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Element with id "drip" not found.');
     }
+
+    if (checkRemainTimeButton) {
+        checkRemainTimeButton.onclick = async function(event) {
+            try {
+                const remainMinutes = await getRemainMinutes();
+                if (remainMinutes !== -1) setWaitTime(remainMinutes)
+                else {
+                    showVerificationBox(event);
+                    pendingAction = checkWaitTime;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+    };}
 });
+
+function showVerificationBox(event) {
+    const button = event.target;
+    const container = document.getElementById('verificationContainer');
+
+    // 获取按钮位置
+    const buttonRect = button.getBoundingClientRect();
+
+    // 设置验证窗口相对于按钮的位置
+    container.style.left = buttonRect.left + 'px';
+    container.style.top = (buttonRect.bottom + window.scrollY) + 'px';
+
+    // 显示验证窗口
+    container.style.display = 'block';
+}
+
+async function checkWaitTime() {
+    const remainMinutes = await getRemainMinutes();
+    if (remainMinutes !== -1) {
+        setWaitTime(remainMinutes);
+    }
+}
 
 async function drip(){
     try{
@@ -353,35 +381,40 @@ document.getElementById('sendVerificationCode').onclick = async () => {
 
 // 验证用户
 document.getElementById('verifyCode').onclick = async () => {
-    const verifyCode = document.getElementById('verification_code').value;
-    const userAddress = document.getElementById('recipAddress').value;
-    const response = await fetch('/verify_code', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({code: verifyCode, user_address: userAddress})
-    });
-    const result = await response.json();
-    console.log(result)
-    if (response.ok) {
-        await drip()
-        const container = document.getElementById('verificationContainer');
-        container.style.display = 'none'
-    } else {
-        alert(result.message);
-    }
-}
-
-// 检查等待时间
-document.getElementById('checkWaitTime').onclick = async () => {
+    const verifyButton = document.getElementById('verifyCode');
+    verifyButton.disabled = true;  // 禁用按钮
     try {
-        const remainMinutes = await getRemainMinutes()
-        if (remainMinutes !== -1) setWaitTime(remainMinutes)
+        const verifyCode = document.getElementById('verification_code').value;
+        const userAddress = document.getElementById('recipAddress').value;
+        const email = document.getElementById('email').value;
+        const response = await fetch('/verify_code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({code: verifyCode, user_address: userAddress, email: email})
+        });
+        const result = await response.json();
+        console.log(result)
+        if (response.ok) {
+            const container = document.getElementById('verificationContainer');
+            container.style.display = 'none'
+            if (pendingAction) {
+                pendingAction();  // 执行 drip 或 checkWaitTime
+                pendingAction = null;  // 清空待执行操作
+            }
+        } else {
+            alert(result.message);
+        }
     } catch (error) {
-        console.error(error);
+        console.error('Verification failed:', error);
+        alert('Verification failed. Please try again.');
+    } finally {
+        // 无论成功还是失败，都重新启用按钮
+        verifyButton.disabled = false;
     }
-};
+
+}
 
 function setWaitTime(remainMinutes) {
     const waitTimeInHours = Math.floor(remainMinutes / 60);
@@ -399,13 +432,12 @@ async function getRemainMinutes() {
                 'Content-Type': 'application/json'
             }
         });
-    const result = await response.json();
     if (response.ok) {
+        const result = await response.json();
         return result.wait_time;
     }
     else {
-       alert(result.error);
-       return -1;
+        return -1;
     }
 
 }

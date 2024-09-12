@@ -126,7 +126,6 @@ def drip():
 @app.route('/check_wait_time', methods=['GET'])
 def check_wait_time():
     try:
-
         email = session.get('email', None)  # 从请求中获取用户的邮箱
         if email is None:
             return jsonify({'error': 'No email provided'}), 500
@@ -185,12 +184,13 @@ def send_verification_code():
 @app.route('/verify_code', methods=["POST"])
 def verify_code():
     code = request.json.get('code')
-    email = session.get('to_be_verified_email')  # 从请求中获取用户的邮箱
-
+    email = request.json.get('email')
+    to_be_verified_email = session.get('to_be_verified_email')  # 从请求中获取用户的邮箱
     wallet_address = os.environ.get("WALLET_ADDRESS")
-
     # 检查验证码是否正确
-    if hash_code(code) == session.get('verification_code') and email == session.get('email'):
+    print(f"session: {session}")
+    print(hash_code(code))
+    if hash_code(code) == session.get('verification_code') and email == to_be_verified_email:
         try:
             # 验证成功，删除验证码
             session.pop('verification_code')
@@ -230,7 +230,6 @@ def verify_code():
             else:
                 # 交易失败
                 response = jsonify({'message': 'Transaction failed', 'transaction_hash': tx_hash.hex()})
-
             return response
         except Exception as e:
             logging.error(f"Error verifying user: {e}")

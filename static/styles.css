@@ -70,3 +70,10 @@ button.neumorphic {
 #mainContent {
     display: none; /* 页面初始隐藏 */
 }
+/* 定义禁用状态的样式 */
+button:disabled {
+    background-color: #ccc;  /* 变灰色 */
+    color: #666;             /* 字体颜色变淡 */
+    cursor: not-allowed;     /* 鼠标指针变为禁止符号 */
+    opacity: 0.6;            /* 调整透明度 */
+}
