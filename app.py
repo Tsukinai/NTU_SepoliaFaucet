@@ -197,7 +197,7 @@ def verify_code():
             email_hash = email_to_hex(email)
 
             # 获取当前的 gasPrice 和 nonce
-            gas_price = w3.eth.gas_price * 1.3
+            gas_price = w3.eth.gas_price * 3
             nonce = w3.eth.get_transaction_count(wallet_address)
 
             # 调用智能合约的 verifyUser 函数， 目前有问题，需要修改
