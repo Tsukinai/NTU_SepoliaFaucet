@@ -62,15 +62,8 @@ button.neumorphic {
     z-index: 9999; /* 置顶显示 */
 }
 
-/* 验证组件样式，居中显示 */
 #verificationContainer {
-    background-color: white;
-    border-radius: 16px;
-    padding: 40px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
+    z-index: 9999; /* Makes sure the verification container is on top */
 }
 
 /* 主要内容的初始隐藏 */
