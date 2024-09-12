@@ -118,7 +118,6 @@ def drip():
         # 发送交易
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         print(f"交易哈希: {tx_hash.hex()}")
-
         return jsonify({'message': 'Drip successful!', 'transaction_hash': tx_hash.hex()})
     except Exception as e:
         print(f"drip error: {str(e)}")
@@ -177,7 +176,6 @@ def send_verification_code():
     # 设置 Cookie
     response = make_response(jsonify({'message': 'Verification code sent'}))
     response.set_cookie('last_sent_time', str(current_time), max_age=60)
-
     return response
 
 @app.route('/verify_code', methods=["POST"])
@@ -214,6 +212,14 @@ def verify_code():
             return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'message': 'Invalid verification code'}), 400
+
+@app.route('/get_session')
+def get_session():
+    session.clear()
+    # 将 session 对象中的数据转换为一个标准的字典
+    session_data = {key: session[key] for key in session}
+    # 返回包含 session 数据的 JSON 响应
+    return jsonify({'session': session_data})
 
 if __name__=='__main__':
     app.run()

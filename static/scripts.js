@@ -256,10 +256,53 @@ document.getElementById('getBalance').onclick = async () => {
     }
 };
 
-// 滴水
-document.getElementById('drip').onclick = async () => {
-    try {
-        const userAddress = document.getElementById('recipAddress').value;
+document.addEventListener('DOMContentLoaded', function() {
+    const dripButton = document.getElementById('drip');
+
+    if (dripButton) {
+        dripButton.onclick = async function(event) {
+            try {
+                // 获取 session
+                const response = await fetch('/get_session');
+                const data = await response.json();  // 解析 JSON 响应
+                const session = data.session;  // 提取 session 对象
+                console.log(session);
+
+                // 如果 session 中有 email，直接执行 drip()
+                if (session['email'] != null) {
+                    await drip();
+                } else {
+                    // 如果 session 中没有 email，弹出验证窗口
+                    const button = event.target;
+                    const container = document.getElementById('verificationContainer');
+
+                    // 获取按钮位置
+                    const buttonRect = button.getBoundingClientRect();
+
+                    // 设置验证窗口相对于按钮的位置
+                    container.style.left = buttonRect.left + 'px';
+                    container.style.top = (buttonRect.bottom + window.scrollY) + 'px';
+
+                    // 显示验证窗口
+                    container.style.display = 'block';
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+    } else {
+        console.error('Element with id "drip" not found.');
+    }
+});
+
+async function drip(){
+    try{
+        let userAddress = document.getElementById('recipAddress').value;
+        // 从metamask drip
+        if (userAddress === '') {
+            const accounts = await ethereum.request({method: 'eth_requestAccounts'});
+            userAddress = accounts[0]
+        }
         const response = await fetch('/drip', {
             method: 'POST',
             headers: {
@@ -271,12 +314,14 @@ document.getElementById('drip').onclick = async () => {
         if (result.error) {
             throw new Error(result.error);
         }
-        document.getElementById('result').innerText = 'Drip successful!';
+        document.getElementById('result').innerHTML = 'Drip successful! '
+            + '<a href="https://sepolia.etherscan.io/tx/0x' + result['transaction_hash'] + '" target="_blank">'
+            + 'Click to view transaction</a>';
         animateResult();
     } catch (error) {
         console.error(error);
     }
-};
+}
 
 // 发送验证码
 document.getElementById('sendVerificationCode').onclick = async () => {
@@ -320,10 +365,9 @@ document.getElementById('verifyCode').onclick = async () => {
     const result = await response.json();
     console.log(result)
     if (response.ok) {
-        const overlay = document.getElementById('overlay');
-        const mainContent = document.getElementById('mainContent');
-        overlay.style.display = 'none';  // 隐藏模糊遮罩和验证码组件
-        mainContent.style.display = 'block';  // 显示主要内容
+        await drip()
+        const container = document.getElementById('verificationContainer');
+        container.style.display = 'none'
     } else {
         alert(result.message);
     }
@@ -332,26 +376,32 @@ document.getElementById('verifyCode').onclick = async () => {
 // 检查等待时间
 document.getElementById('checkWaitTime').onclick = async () => {
     try {
-        const response = await fetch('/check_wait_time', {
+        const remainMinutes = await getRemainMinutes()
+        setWaitTime(remainMinutes)
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+function setWaitTime(remainMinutes) {
+    const waitTimeInHours = Math.floor(remainMinutes / 60);
+    const waitTimeInMinutes = remainMinutes % 60;
+    document.getElementById('waitTimeText').innerText = `${waitTimeInHours}h`;
+    setProgress(remainMinutes, 1440);
+    document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInHours} hours ${waitTimeInMinutes} minutes `;
+    animateResult();
+}
+
+async function getRemainMinutes() {
+    const response = await fetch('/check_wait_time', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-        const result = await response.json(); // 解析响应为 JSON
-        const waitTimeInHours = Math.floor(result.wait_time / 60);
-        const waitTimeInMinutes = result.wait_time % 60;
-
-        // debug
-        // const waitTimeInMinutes = 599;
-        document.getElementById('waitTimeText').innerText = `${waitTimeInHours}h`;
-        setProgress(result.wait_time, 1440);
-        document.getElementById('result').innerText = `Remaining wait time: ${waitTimeInHours} hours ${waitTimeInMinutes} minutes `;
-        animateResult();
-    } catch (error) {
-        console.error(error);
-    }
-};
+    const result = await response.json();
+    return result.wait_time;
+}
 
 // 动画效果
 function animateResult() {
