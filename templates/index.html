@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='icon.jpeg') }}" type="image/x-icon">
     <title>NTU Sepolia Faucet</title>
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
@@ -34,14 +35,14 @@
             <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">NTU Sepolia Faucet</h1>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
-                    <img src="{{ url_for('static', filename='kafka.jpg') }}" alt="Ethereum Logo"
+                    <img src="{{ url_for('static', filename='faucet.jpg') }}" alt="Ethereum Logo"
                         class="w-32 h-32 mb-4 rounded-full animate-float">
                     <button id="getBalance"
                         class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300">Get
                         Faucet Balance</button>
                 </div>
                 <div class="neumorphic-inset rounded-lg p-6 flex flex-col items-center">
-                    <img src="{{ url_for('static', filename='happy_w.jpg') }}" alt="Drip Icon"
+                    <img src="{{ url_for('static', filename='account.png') }}" alt="Drip Icon"
                         class="w-32 h-32 mb-4 rounded-full animate-float">
                     <button id="inquire"
                         class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300">Get Self Balance</button>
@@ -91,11 +92,11 @@
         <div class="flex flex-col md:flex-row items-center gap-4">
             <a href="https://testnets.opensea.io/zh-CN/collection/lena-5" target="_blank"
                class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
-                Opensea Collection (Lena)
+                <img src="{{ url_for('static', filename='lena.png') }}" alt="Opensea Icon" class="inline-block w-4 h-4 mr-2 rounded-icon"> Lena Token
             </a>
             <a href="https://zefancoin.onrender.com/" target="_blank"
                class="neumorphic px-6 py-3 rounded-full text-gray-800 font-semibold hover:scale-105 transition-transform duration-300 w-full md:w-auto">
-                Zefan Coin
+                <img src="{{ url_for('static', filename='happy_w.jpg') }}" alt="Zefan Icon" class="inline-block w-4 h-4 mr-2 rounded-icon"> Zefan Coin
             </a>
         </div>
     </div>
