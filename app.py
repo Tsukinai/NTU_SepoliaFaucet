@@ -118,7 +118,7 @@ def drip():
         # 发送交易
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         print(f"交易哈希: {tx_hash.hex()}")
-        return jsonify({'message': 'Drip successful!', 'transaction_hash': tx_hash.hex()})
+        return jsonify({'message': 'Drip sent!', 'transaction_hash': tx_hash.hex()})
     except Exception as e:
         print(f"drip error: {str(e)}")
         return jsonify({'error': str(e)}), 500
