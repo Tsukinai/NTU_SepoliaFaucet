@@ -342,7 +342,7 @@ async function drip(){
         if (result.error) {
             throw new Error(result.error);
         }
-        document.getElementById('result').innerHTML = 'Drip successful! '
+        document.getElementById('result').innerHTML = 'Drip sent! '
             + '<a href="https://sepolia.etherscan.io/tx/0x' + result['transaction_hash'] + '" target="_blank">'
             + 'Click to view transaction</a>';
         animateResult();
