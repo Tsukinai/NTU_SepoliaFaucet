@@ -10,8 +10,8 @@ import time
 import hashlib
 
 # 从 .env 文件中加载环境变量，本地环境用的
-import dotenv
-dotenv.load_dotenv("faucet.env")
+# import dotenv
+# dotenv.load_dotenv("faucet.env")
 
 # 合理的邮箱后缀列表
 valid_domains = [
