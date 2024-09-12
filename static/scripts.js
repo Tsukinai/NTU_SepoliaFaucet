@@ -1,6 +1,6 @@
 let web3;
 let userAddress;
-
+console.log('this is test version')
 const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
 const contractABI = [
     {
