@@ -1,6 +1,6 @@
 let web3;
 let userAddress;
-console.log('this is test version 18:40')
+console.log('this is test version 18:57')
 pendingAction = null;
 const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
 const contractABI = [
@@ -271,14 +271,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(session);
 
                 // 如果 session 中有 email，直接执行 drip()
+                const minutes = await getRemainMinutes()
+                if (minutes !== 0) {
+                    alert(`You should wait ${minutes} minutes for another try.`)
+                    setWaitTime(minutes);
+                    animateResult();
+                    return
+                }
                 if (session['email'] != null) {
-                    const minutes = await getRemainMinutes()
-                    if (minutes !== 0) {
-                        alert(`You should wait ${minutes} minutes for another try.`)
-                        setWaitTime(minutes);
-                        animateResult();
-                    }
-                    else await drip();
+                    await drip();
                 } else {
                     // 如果 session 中没有 email，弹出验证窗口
                     showVerificationBox(event);
