@@ -155,7 +155,8 @@ def send_verification_code():
     verification_code = generate_verification_code()
     # 将验证码哈希成 SHA-256
     session['verification_code'] = hash_code(verification_code)
-    session['email'] = email
+    # 将邮箱保存到 session 中,命名与email不同，避免与另一个验证后的email变量冲突
+    session['to_be_verified_email'] = email
 
     # 发送邮件
     msg = Message('Your Verification Code', sender='ntu.faucet@yahoo.com', recipients=[email])
@@ -183,13 +184,15 @@ def send_verification_code():
 @app.route('/verify_code', methods=["POST"])
 def verify_code():
     code = request.json.get('code')
-    email = session.get('email')  # 从请求中获取用户的邮箱
+    email = session.get('to_be_verified_email')  # 从请求中获取用户的邮箱
 
     wallet_address = os.environ.get("WALLET_ADDRESS")
 
     # 检查验证码是否正确
     if hash_code(code) == session.get('verification_code') and email == session.get('email'):
         try:
+            # 验证成功，删除验证码
+            session.pop('verification_code')
             # 将邮箱哈希成 bytes32
             email_hash = email_to_hex(email)
 
@@ -208,7 +211,26 @@ def verify_code():
             signed_tx = Account.sign_transaction(tx, private_key=private_key)
             tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
             print(f'Transaction hash: {tx_hash.hex()}')
-            return jsonify({'message': 'Verification successful', 'transaction_hash': tx_hash.hex()})
+            # 等待交易确认
+            while True:
+                try:
+                    receipt = w3.eth.get_transaction_receipt(tx_hash)
+                    if receipt is not None:
+                        break
+                except:
+                    pass
+                time.sleep(1)  # 等待一秒钟后重试
+
+            # 检查交易是否成功
+            if receipt['status'] == 1:
+                # 交易成功，将 email 存入 cookie 并设置用户登录状态
+                response = make_response(jsonify({'message': 'Verification successful', 'transaction_hash': tx_hash.hex()}))
+                session['email'] = email
+            else:
+                # 交易失败
+                response = jsonify({'message': 'Transaction failed', 'transaction_hash': tx_hash.hex()})
+
+            return response
         except Exception as e:
             logging.error(f"Error verifying user: {e}")
             return jsonify({'error': str(e)}), 500
