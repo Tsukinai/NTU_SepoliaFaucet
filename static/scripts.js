@@ -1,6 +1,6 @@
 let web3;
 let userAddress;
-console.log('this is test version')
+console.log('this is test version 18:40')
 pendingAction = null;
 const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
 const contractABI = [
@@ -272,7 +272,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // 如果 session 中有 email，直接执行 drip()
                 if (session['email'] != null) {
-                    await drip();
+                    const minutes = await getRemainMinutes()
+                    if (minutes !== 0) {
+                        alert(`You should wait ${minutes} minutes for another try.`)
+                        setWaitTime(minutes);
+                        animateResult();
+                    }
+                    else await drip();
                 } else {
                     // 如果 session 中没有 email，弹出验证窗口
                     showVerificationBox(event);
@@ -301,21 +307,20 @@ document.addEventListener('DOMContentLoaded', function() {
     };}
 });
 
-function showVerificationBox(event) {
-    const button = event.target;
+function showVerificationBox(event) {// 显示模糊背景
+    const blurBackground = document.getElementById('blurBackground');
     const container = document.getElementById('verificationContainer');
-
-    // 获取按钮位置
-    const buttonRect = button.getBoundingClientRect();
-
-    // 设置验证窗口相对于按钮的位置
-    container.style.left = buttonRect.left + 'px';
-    container.style.top = (buttonRect.bottom + window.scrollY) + 'px';
-
-    // 显示验证窗口
+    // 显示并居中 VerificationBox
+    blurBackground.style.display = 'block';
     container.style.display = 'block';
 }
+function hideVerificationBox() {
+    const blurBackground = document.getElementById('blurBackground');
+    const container = document.getElementById('verificationContainer');
 
+    blurBackground.style.display = 'none';
+    container.style.display = 'none';
+}
 async function checkWaitTime() {
     const remainMinutes = await getRemainMinutes();
     if (remainMinutes !== -1) {
@@ -342,9 +347,9 @@ async function drip(){
         if (result.error) {
             throw new Error(result.error);
         }
-        document.getElementById('result').innerHTML = 'Drip successful! '
+        document.getElementById('result').innerHTML = 'Drip sent. You can => '
             + '<a href="https://sepolia.etherscan.io/tx/0x' + result['transaction_hash'] + '" target="_blank">'
-            + 'Click to view transaction</a>';
+            + 'Click to view transaction <=</a>';
         animateResult();
     } catch (error) {
         console.error(error);
@@ -397,8 +402,7 @@ document.getElementById('verifyCode').onclick = async () => {
         const result = await response.json();
         console.log(result)
         if (response.ok) {
-            const container = document.getElementById('verificationContainer');
-            container.style.display = 'none'
+            hideVerificationBox();
             if (pendingAction) {
                 pendingAction();  // 执行 drip 或 checkWaitTime
                 pendingAction = null;  // 清空待执行操作

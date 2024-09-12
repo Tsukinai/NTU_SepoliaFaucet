@@ -8,15 +8,17 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100 transition-colors duration-300">
-    <div id="verificationContainer" class="neumorphic" style="display:none; position:absolute;">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h1 class="text-2xl font-bold mb-4">NTU Verification</h1>
-            <input type="email" id="email" placeholder="Enter your NTU email" class="w-full p-2 mb-4 border rounded">
-            <button id="sendVerificationCode" class="neumorphic p-2 rounded-full mb-4">Send Verification Code</button>
-            <input type="text" id="verification_code" placeholder="Enter verification code" class="w-full p-2 mb-4 border rounded">
-            <button id="verifyCode" class="neumorphic p-2 rounded-full">Verify Code</button>
-        </div>
+
+<div id="blurBackground" class="blur-background"></div>
+<div id="verificationContainer" class="neumorphic" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); text-align: center; width: 400px;">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">NTU Verification</h1>
+        <input type="email" id="email" placeholder="Enter your NTU email" class="w-full p-2 mb-4 border rounded" style="display: block; margin: 0 auto;">
+        <button id="sendVerificationCode" class="neumorphic p-2 rounded-full mb-4" style="width: 90%;">Send Verification Code</button>
+        <input type="text" id="verification_code" placeholder="Enter verification code" class="w-full p-2 mb-4 border rounded" style="display: block; margin: 0 auto;">
+        <button id="verifyCode" class="neumorphic p-2 rounded-full" style="width: 90%;">Verify Code</button>
     </div>
+</div>
 {#    <div id="mainContent">#}
     <div class="container mx-auto px-4 py-8">
         <div class="neumorphic rounded-lg p-8 mb-8">
@@ -53,6 +55,7 @@
                 </div>
             </div>
         </div>
+{#        </div>#}
         <p id="result" class="mt-8 text-xl font-semibold text-center text-gray-800"></p>
         <div class="neumorphic rounded-lg p-8">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Drip from Faucet</h2>
