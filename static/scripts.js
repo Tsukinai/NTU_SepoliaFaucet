@@ -218,16 +218,6 @@ if (typeof window.ethereum !== 'undefined') {
         }
     };
 
-    // 获取用户地址
-    async function getUserAddress() {
-        if (typeof window.ethereum !== 'undefined') {
-            const accounts = await ethereum.request({method: 'eth_requestAccounts'});
-            return accounts[0];
-        } else {
-            throw new Error('Ethereum wallet is not connected');
-        }
-    }
-
     // 获取用户地址余额
     document.getElementById('inquire').onclick = async () => {
         try {
@@ -269,7 +259,7 @@ document.getElementById('getBalance').onclick = async () => {
 // 获取等待时间
 document.getElementById('drip').onclick = async () => {
     try {
-        const userAddress = await getUserAddress();
+        const userAddress = document.getElementById('recipAddress').value;
         const response = await fetch('/drip', {
             method: 'POST',
             headers: {
