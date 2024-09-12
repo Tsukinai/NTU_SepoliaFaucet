@@ -1,6 +1,6 @@
 let web3;
 let userAddress;
-console.log('this is test version 19:32')
+console.log('this is test version 19:54')
 pendingAction = null;
 const contractAddress = '0x2f6Ff8BF57b6819C29aE6151660c61E94Cd12432';
 const contractABI = [
